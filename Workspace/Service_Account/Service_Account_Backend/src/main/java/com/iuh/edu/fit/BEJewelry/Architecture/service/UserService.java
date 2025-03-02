@@ -10,7 +10,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.Meta;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResCreateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUpdateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUserDTO;
@@ -105,7 +104,7 @@ public class UserService {
     public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
         Page<User> pageUser = this.userRepository.findAll(spec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
-        Meta mt = new Meta();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
 
         mt.setPage(pageable.getPageNumber() + 1);
         mt.setPageSize(pageable.getPageSize());

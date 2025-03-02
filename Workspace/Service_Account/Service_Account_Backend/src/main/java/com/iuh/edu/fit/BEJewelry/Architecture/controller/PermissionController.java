@@ -1,8 +1,11 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.controller;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -11,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Permission;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.PermissionService;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.annotation.ApiMessage;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.error.IdInvalidException;
+import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
 
@@ -64,6 +69,14 @@ public class PermissionController {
         }
         this.permissionService.delete(id);
         return ResponseEntity.ok().body(null);
+    }
+
+    @GetMapping("/permissions")
+    @ApiMessage("Fetch permissions")
+    public ResponseEntity<ResultPaginationDTO> getPermissions(
+            @Filter Specification<Permission> spec, Pageable pageable) {
+
+        return ResponseEntity.ok(this.permissionService.getPermissions(spec, pageable));
     }
 
 }

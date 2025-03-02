@@ -2,10 +2,13 @@ package com.iuh.edu.fit.BEJewelry.Architecture.service;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Permission;
-
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.PermissionRepository;
 
 @Service
@@ -59,4 +62,19 @@ public class PermissionService {
         this.permissionRepository.delete(currentPermission);
     }
 
+    public ResultPaginationDTO getPermissions(Specification<Permission> spec, Pageable pageable) {
+        Page<Permission> pPermissions = this.permissionRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pPermissions.getTotalPages());
+        mt.setTotal(pPermissions.getTotalElements());
+
+        rs.setMeta(mt);
+        rs.setResult(pPermissions.getContent());
+        return rs;
+    }
 }

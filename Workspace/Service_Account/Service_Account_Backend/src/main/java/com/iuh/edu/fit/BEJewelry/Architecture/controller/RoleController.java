@@ -2,6 +2,8 @@ package com.iuh.edu.fit.BEJewelry.Architecture.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,5 +50,16 @@ public class RoleController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.update(r));
+    }
+
+    @DeleteMapping("/roles/{id}")
+    @ApiMessage("Delete a role")
+    public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
+        // check id
+        if (this.roleService.fetchById(id) == null) {
+            throw new IdInvalidException("Role với id = " + id + " không tồn tại");
+        }
+        this.roleService.delete(id);
+        return ResponseEntity.ok().body(null);
     }
 }

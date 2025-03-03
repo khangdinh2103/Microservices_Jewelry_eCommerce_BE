@@ -1,8 +1,9 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
+const ProductImage = require('./ProductImage'); // Import model ProductImage
 
 const Product = sequelize.define('Product', {
-    productID: { // Đổi 'id' thành 'productID' để khớp với sơ đồ
+    productID: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -48,10 +49,6 @@ const Product = sequelize.define('Product', {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    imageSet: {
-        type: DataTypes.JSON, // Lưu danh sách hình ảnh dưới dạng JSON
-        allowNull: true,
-    },
     createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -63,7 +60,11 @@ const Product = sequelize.define('Product', {
     }
 }, {
     tableName: 'products',
-    timestamps: true, // Sử dụng timestamps để tự động cập nhật createdAt và updatedAt
+    timestamps: true,
 });
+
+// Thiết lập quan hệ 1-N giữa Product và ProductImage
+Product.hasMany(ProductImage, { foreignKey: 'productID', as: 'imageSet' });
+ProductImage.belongsTo(Product, { foreignKey: 'productID' });
 
 module.exports = Product;

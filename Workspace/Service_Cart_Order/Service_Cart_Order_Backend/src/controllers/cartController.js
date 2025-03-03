@@ -1,22 +1,32 @@
 const Cart = require('../models/Cart');
 const CartItem = require('../models/CartItem'); // Đổi CartDetail thành CartItem nếu đã đổi tên model
 const Product = require('../models/Product');
+const ProductImage = require('../models/ProductImage');
 
 const getCartByUserId = async (req, res) => {
     const { userId } = req.params;
 
     try {
         const cart = await Cart.findOne({
-            where: { userID: userId }, // Đổi 'user_id' thành 'userID' cho nhất quán với model
+            where: { userID: userId },
             include: [
                 {
-                    model: CartItem, // Đảm bảo sử dụng đúng model (CartItem)
-                    as: 'cartItems', // Alias đúng với associations.js
+                    model: CartItem,
+                    as: 'cartItems',
                     include: [
                         {
                             model: Product,
-                            as: 'product', // Alias đúng với associations.js
-                            attributes: ['name', 'price']
+                            as: 'product', // Đảm bảo đúng alias
+                            attributes: ['productID', 'name', 'price'],
+                            include: [
+                                {
+                                    model: ProductImage,
+                                    as: 'imageSet',
+                                    attributes: ['imageURL'],
+                                    limit: 1,
+                                    order: [['imageID', 'ASC']]
+                                }
+                            ]
                         }
                     ]
                 }
@@ -27,14 +37,12 @@ const getCartByUserId = async (req, res) => {
             return res.status(404).json({ message: 'Cart not found' });
         }
 
-        if (!cart.cartItems || cart.cartItems.length === 0) {
-            return res.json({ cartId: cart.cartID, items: [] });
-        }
-
         const result = cart.cartItems.map(detail => ({
-            productName: detail.product?.name ?? 'N/A', // Lấy 'name' từ product
+            productID: detail.product?.productID ?? null, // Đảm bảo có productID
+            productName: detail.product?.name ?? 'N/A',
             quantity: detail.quantity,
-            price: detail.price
+            price: detail.price,
+            imageURL: detail.product?.imageSet?.length > 0 ? detail.product.imageSet[0].imageURL : null
         }));
 
         res.json({ cartId: cart.cartID, items: result });
@@ -44,6 +52,7 @@ const getCartByUserId = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
 
 const addCartItem = async (req, res) => {
     try {

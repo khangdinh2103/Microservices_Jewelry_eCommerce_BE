@@ -4,6 +4,7 @@ const Product = require('./Product');
 const CartItem = require('./CartItem');
 const Order = require('./Order');
 const OrderDetail = require('./OrderDetail');
+const ProductImage = require('./ProductImage');
 
 
 Cart.hasMany(CartItem, { foreignKey: 'cartID', as: 'cartItems', onDelete: 'CASCADE' });
@@ -24,6 +25,8 @@ OrderDetail.belongsTo(Order, { foreignKey: 'orderID', as: 'order' });
 Product.hasMany(OrderDetail, { foreignKey: 'productID', as: 'productOrders', onDelete: 'CASCADE' });
 OrderDetail.belongsTo(Product, { foreignKey: 'productID', as: 'product' });
 
+Product.hasMany(ProductImage, { foreignKey: 'productID', as: 'imageSet' });
+ProductImage.belongsTo(Product, { foreignKey: 'productID', as: 'product' });
 module.exports = {
     User,
     Cart,

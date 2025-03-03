@@ -3,10 +3,11 @@ const {
  
     updateOrder,
     deleteOrder,
-} = require('../controllers/orderController');
+    
+} = require('../../controllers/orderControllers');
 
 const router = express.Router();
-router.put('/orders/:orderID', updateOrder); // Cập nhật đơn hàng
-router.delete('/orders/:orderID', deleteOrder); // Xóa đơn hàng
+router.put('/orders/:orderID', updateOrder); 
+router.delete('/orders/:orderID', deleteOrder); 
 
 module.exports = router;

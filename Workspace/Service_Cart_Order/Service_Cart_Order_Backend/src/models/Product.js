@@ -64,7 +64,7 @@ const Product = sequelize.define('Product', {
 });
 
 // Thiết lập quan hệ 1-N giữa Product và ProductImage
-Product.hasMany(ProductImage, { foreignKey: 'productID', as: 'imageSet' });
-ProductImage.belongsTo(Product, { foreignKey: 'productID' });
+// Product.hasMany(ProductImage, { foreignKey: 'productID', as: 'imageSet' });
+// ProductImage.belongsTo(Product, { foreignKey: 'productID' });
 
 module.exports = Product;

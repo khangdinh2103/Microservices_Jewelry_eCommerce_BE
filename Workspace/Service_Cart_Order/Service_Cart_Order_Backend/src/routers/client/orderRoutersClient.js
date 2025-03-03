@@ -3,10 +3,11 @@ const {
     createOrder,
     getOrders,
     getOrderById,
-    updateOrder,
     deleteOrder,
-    getOrderDetailById
-} = require('../controllers/orderController');
+    getOrderDetailById,
+    getOrderByIdUser
+} = require('../../controllers/orderControllers');
+
 
 const router = express.Router();
 

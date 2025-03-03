@@ -42,10 +42,10 @@ const CartItem = sequelize.define('CartItem', {
 });
 
 // Thiết lập quan hệ với alias nhất quán
-Cart.hasMany(CartItem, { foreignKey: 'cartID', as: 'cartItems' });
-CartItem.belongsTo(Cart, { foreignKey: 'cartID', as: 'cart' });
+// Cart.hasMany(CartItem, { foreignKey: 'cartID', as: 'cartItems' });
+// CartItem.belongsTo(Cart, { foreignKey: 'cartID', as: 'cart' });
 
-Product.hasMany(CartItem, { foreignKey: 'productID', as: 'productItems' });
-CartItem.belongsTo(Product, { foreignKey: 'productID', as: 'product' });
+// Product.hasMany(CartItem, { foreignKey: 'productID', as: 'productItems' });
+// CartItem.belongsTo(Product, { foreignKey: 'productID', as: 'product' });
 
 module.exports = CartItem;

@@ -28,8 +28,8 @@ const Cart = sequelize.define('Cart', {
     timestamps: false, // Tắt tự động timestamps vì đã khai báo 'createdAt' thủ công
 });
 
-// Thiết lập quan hệ với User
-Cart.belongsTo(User, { foreignKey: 'userID' });
-User.hasOne(Cart, { foreignKey: 'userID' });
+// // Thiết lập quan hệ với User
+// Cart.belongsTo(User, { foreignKey: 'userID' });
+// User.hasOne(Cart, { foreignKey: 'userID' });
 
 module.exports = Cart;

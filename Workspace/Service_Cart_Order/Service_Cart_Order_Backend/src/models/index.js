@@ -5,11 +5,10 @@ const CartItem = require('./CartItem');
 const Order = require('./Order');
 const OrderDetail = require('./OrderDetail');
 
-// 🛒 Quan hệ giữa Cart và CartItem
+
 Cart.hasMany(CartItem, { foreignKey: 'cartID', as: 'cartItems', onDelete: 'CASCADE' });
 CartItem.belongsTo(Cart, { foreignKey: 'cartID', as: 'cart' });
 
-// 📦 Quan hệ giữa Product và CartItem
 Product.hasMany(CartItem, { foreignKey: 'productID', as: 'productItems', onDelete: 'CASCADE' });
 CartItem.belongsTo(Product, { foreignKey: 'productID', as: 'product' });
 

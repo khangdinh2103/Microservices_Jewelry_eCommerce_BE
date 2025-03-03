@@ -12,11 +12,9 @@ CartItem.belongsTo(Cart, { foreignKey: 'cartID', as: 'cart' });
 Product.hasMany(CartItem, { foreignKey: 'productID', as: 'productItems', onDelete: 'CASCADE' });
 CartItem.belongsTo(Product, { foreignKey: 'productID', as: 'product' });
 
-// 👤 Quan hệ giữa User và Cart
 User.hasOne(Cart, { foreignKey: 'userID', as: 'userCart', onDelete: 'CASCADE' });
 Cart.belongsTo(User, { foreignKey: 'userID', as: 'user' });
 
-// 🛍 Quan hệ giữa User và Order
 User.hasMany(Order, { foreignKey: 'userID', as: 'orders', onDelete: 'CASCADE' });
 Order.belongsTo(User, { foreignKey: 'userID', as: 'user' });
 

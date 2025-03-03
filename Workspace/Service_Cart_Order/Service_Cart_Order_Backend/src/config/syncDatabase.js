@@ -1,6 +1,6 @@
 const sequelize = require('./Database'); 
 
-sequelize.sync({ force: false }) // Đặt `true` nếu muốn xóa và tạo lại bảng
+sequelize.sync({ force: false}) // Đặt `true` nếu muốn xóa và tạo lại bảng
     .then(() => {
         console.log('Database & tables created!');
     })

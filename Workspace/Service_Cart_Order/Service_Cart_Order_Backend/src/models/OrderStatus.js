@@ -1,9 +1,8 @@
-module.exports = (sequelize, DataTypes) => {
-    const OrderStatus = {
-      PENDING: "PENDING",
-      SUCCESS: "SUCCESS",
-      FAILED: "FAILED",
-    };
-    return OrderStatus;
+const OrderStatus = {
+    PENDING: "PENDING",
+    SUCCESS: "SUCCESS",
+    FAILED: "FAILED",
   };
+  
+  module.exports = OrderStatus;
   

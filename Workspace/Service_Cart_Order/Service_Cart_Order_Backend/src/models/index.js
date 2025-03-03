@@ -18,11 +18,9 @@ Cart.belongsTo(User, { foreignKey: 'userID', as: 'user' });
 User.hasMany(Order, { foreignKey: 'userID', as: 'orders', onDelete: 'CASCADE' });
 Order.belongsTo(User, { foreignKey: 'userID', as: 'user' });
 
-// 📝 Quan hệ giữa Order và OrderDetail
 Order.hasMany(OrderDetail, { foreignKey: 'orderID', as: 'orderDetails', onDelete: 'CASCADE' });
 OrderDetail.belongsTo(Order, { foreignKey: 'orderID', as: 'order' });
 
-// 📦 Quan hệ giữa OrderDetail và Product
 Product.hasMany(OrderDetail, { foreignKey: 'productID', as: 'productOrders', onDelete: 'CASCADE' });
 OrderDetail.belongsTo(Product, { foreignKey: 'productID', as: 'product' });
 

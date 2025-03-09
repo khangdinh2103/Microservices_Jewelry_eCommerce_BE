@@ -17,15 +17,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqForgotPasswordDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqLoginDTO;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqResetPasswordDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResCreateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResLoginDTO;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.RestResponse;
+import com.iuh.edu.fit.BEJewelry.Architecture.service.AuthService;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.SecurityUtil;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.annotation.ApiMessage;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.error.IdInvalidException;
+import com.iuh.edu.fit.BEJewelry.Architecture.util.error.PermissionException;
 
 import jakarta.validation.Valid;
 
@@ -36,16 +40,18 @@ public class AuthController {
     private final SecurityUtil securityUtil;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
     @Value("${huy.jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenExpiration;
 
     public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder, SecurityUtil securityUtil,
-            UserService userService, PasswordEncoder passwordEncoder) {
+            UserService userService, PasswordEncoder passwordEncoder, AuthService authService) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.securityUtil = securityUtil;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.authService = authService;
     }
 
     @PostMapping("/auth/login")
@@ -212,6 +218,21 @@ public class AuthController {
         postManUser.setPassword(hashPassword);
         User newUser = this.userService.handleCreateUser(postManUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(newUser));
+    }
+
+    @PostMapping("/auth/forgot-password")
+    public ResponseEntity<RestResponse<String>> forgotPassword(@Valid @RequestBody ReqForgotPasswordDTO request) {
+        String result = authService.forgotPassword(request.getEmail());
+        RestResponse<String> response = new RestResponse<>(200, null, "Mã xác nhận đã gửi thành công", result);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/auth/reset-password")
+    public ResponseEntity<RestResponse<String>> resetPassword(@Valid @RequestBody ReqResetPasswordDTO request)
+            throws PermissionException {
+        String result = authService.resetPassword(request.getToken(), request.getNewPassword());
+        RestResponse<String> response = new RestResponse<>(200, null, "Mật khẩu đã được đặt lại thành công", result);
+        return ResponseEntity.ok(response);
     }
 
 }

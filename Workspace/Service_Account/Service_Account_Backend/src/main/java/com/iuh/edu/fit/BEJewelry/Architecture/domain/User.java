@@ -52,6 +52,9 @@ public class User {
     private String createdBy;
     private String updatedBy;
 
+    @Column(name = "reset_token")
+    private String resetToken;
+
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;

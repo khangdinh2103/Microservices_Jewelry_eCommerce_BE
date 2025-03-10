@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins= "*")
 @RestController
 @RequestMapping("/api/product")
 public class ProductResource {
@@ -36,6 +37,31 @@ public class ProductResource {
     @GetMapping("/detailProduct/{id}")
     public Product showProductDetail(@PathVariable Integer id) {
         return productService.getProductById(id);
+    }
+
+    @GetMapping("/listProductByCategory/{categoryId}")
+    public List<Product> showProductListByCategory(@PathVariable Integer categoryId) {
+        return productService.getAllByCategoryId(categoryId);
+    }
+
+    @GetMapping("/listBrandByCategory/{categoryId}")
+    public List<String> showBrandListByCategory(@PathVariable Integer categoryId) {
+        return productService.getAllBrandByCategoryId(categoryId);
+    }
+
+    @GetMapping("/listMaterialByCategory/{categoryId}")
+    public List<String> showMaterialListByCategory(@PathVariable Integer categoryId) {
+        return productService.getAllMaterialByCategoryId(categoryId);
+    }
+
+    @GetMapping("/listSizeByCategory/{categoryId}")
+    public List<String> showSizeListByCategory(@PathVariable Integer categoryId) {
+        return productService.getAllSizeByCategoryId(categoryId);
+    }
+
+    @GetMapping("/listGoldKaratByCategory/{categoryId}")
+    public List<String> showGoldKaratListByCategory(@PathVariable Integer categoryId) {
+        return productService.getAllGoldKaratByCategoryId(categoryId);
     }
 
     @PostMapping("/addProduct")

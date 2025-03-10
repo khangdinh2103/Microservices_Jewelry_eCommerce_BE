@@ -41,4 +41,24 @@ public class ProductService {
     public List<Product> getAllByIds(List<Integer> ids) {
         return productRepository.findAllById(ids);
     }
+
+    public List<Product> getAllByCategoryId(Integer categoryId) {
+        return productRepository.findAllByCategoryId(categoryId);
+    }
+
+    public List<String> getAllBrandByCategoryId(Integer categoryId) {
+        return productRepository.getAllBrandByCategoryId(categoryId);
+    }
+
+    public List<String> getAllMaterialByCategoryId(Integer categoryId) {
+        return productRepository.getAllMaterialByCategoryId(categoryId);
+    }
+
+    public List<String> getAllSizeByCategoryId(Integer categoryId) {
+        return productRepository.getAllSizeByCategoryId(categoryId);
+    }
+
+    public List<String> getAllGoldKaratByCategoryId(Integer categoryId) {
+        return productRepository.getAllGoldKaratByCategoryId(categoryId);
+    }
 }

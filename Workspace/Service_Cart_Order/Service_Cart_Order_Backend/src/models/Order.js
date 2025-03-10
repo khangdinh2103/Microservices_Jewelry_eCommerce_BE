@@ -27,6 +27,11 @@ const Order = sequelize.define(
         type: DataTypes.ENUM(...Object.values(OrderStatus)), 
         defaultValue: OrderStatus.PENDING,
       },
+
+    paymentStatus: {
+        type: DataTypes.ENUM('PENDING', 'PAID', 'CANCELED'),
+        defaultValue: 'PENDING',
+    },
   },
   {
     tableName: "Orders",

@@ -5,7 +5,8 @@ const {
     getOrderById,
     deleteOrder,
     getOrderDetailById,
-    getOrderByIdUser
+    getOrderByIdUser,
+    getUserById
 } = require('../../controllers/orderControllers');
 
 
@@ -15,8 +16,8 @@ router.post('/orders', createOrder); // Tạo đơn hàng
 router.get('/orders', getOrders); // Lấy danh sách đơn hàng
 router.get('/orders/:orderID', getOrderById); // Lấy đơn hàng theo ID
 router.delete('/orders/:orderID', deleteOrder); // Xóa đơn hàng
-router.get('/orders/:orderID/details', getOrderDetailById); // Lấy chi tiết đơn hàng
-router.get('/orders/user/:userID', getOrderByIdUser); // Lấy danh sách đơn hàng theo userID
-
+router.get('/orders/:orderID/details', getOrderDetailById); 
+router.get('/orders/user/:userID', getOrderByIdUser); 
+router.get('/user/:userID', getUserById); 
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const { Order, OrderDetail, Product, User } = require('../models');
+const ProductImage = require('../models/ProductImage');
 
 
 const createOrder = async (req, res) => {
@@ -127,7 +128,7 @@ const getOrderByIdUser = async (req, res) => {
         // Lấy danh sách đơn hàng của user
         const orders = await Order.findAll({
             where: { userID },
-            include: [{ model: OrderDetail, as: "orderDetails", include: [{ model: Product, as: "product" }] }]
+            include: [{ model: OrderDetail, as: "orderDetails", include: [{ model: Product, as: "product", include:[{model: ProductImage, as: "imageSet", attributes: ['imageURL'], limit: 1,}] }] }]
         });
 
         if (orders.length === 0) {
@@ -141,6 +142,23 @@ const getOrderByIdUser = async (req, res) => {
     }
 };
 
+//Tạm thời lấy user
+const getUserById = async (userID) => {
+    try {
+        const user = await User.findOne({ where: { userID } });
+
+        if (!user) {
+            return { error: 'Người dùng không tồn tại' };
+        }
+
+        return user;
+    } catch (error) {
+        console.error('Lỗi khi lấy thông tin người dùng:', error);
+        return { error: 'Lỗi hệ thống' };
+    }
+};
+
+
 module.exports = {
     createOrder,
     getOrders,
@@ -148,5 +166,7 @@ module.exports = {
     updateOrder,
     deleteOrder,
     getOrderDetailById,
-    getOrderByIdUser
+    getOrderByIdUser,
+    getUserById
+    
 };

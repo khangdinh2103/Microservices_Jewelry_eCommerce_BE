@@ -4,16 +4,14 @@ const ProductImage = require('../models/ProductImage');
 
 const createOrder = async (req, res) => {
     try {
-        const { userID, address, status, orderDetails } = req.body;
+        const { userID, address, status, orderDetails, paymentStatus } = req.body;
 
-        // Kiểm tra user có tồn tại không
         const user = await User.findByPk(userID);
         if (!user) {
             return res.status(404).json({ message: "Người dùng không tồn tại" });
         }
 
-        // Tạo đơn hàng
-        const order = await Order.create({ userID, address, status });
+        const order = await Order.create({ userID, address, status, paymentStatus });
 
         // Tạo chi tiết đơn hàng
         const orderItems = orderDetails.map(detail => ({
@@ -30,6 +28,7 @@ const createOrder = async (req, res) => {
         return res.status(500).json({ message: "Lỗi khi tạo đơn hàng" });
     }
 };
+
 
 const getOrders = async (req, res) => {
     try {

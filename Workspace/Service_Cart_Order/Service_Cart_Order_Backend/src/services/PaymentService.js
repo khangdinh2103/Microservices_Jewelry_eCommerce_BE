@@ -62,7 +62,6 @@ const paymentSvc = async (dataPayment) => {
 
 const verifyPaymentMomoSvc = (dataFromMomo) => {
     if (dataFromMomo) {
-        // console.log(">>>>>>>>>>>>>>>>            ", dataFromMomo);
         return dataFromMomo;
     } else {
         throw {

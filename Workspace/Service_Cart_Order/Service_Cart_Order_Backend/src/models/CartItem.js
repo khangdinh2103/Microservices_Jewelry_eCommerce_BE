@@ -34,10 +34,10 @@ const CartItem = sequelize.define('CartItem', {
             model: Product,
             key: 'productID',
         },
-        onDelete: 'CASCADE', // Xóa product sẽ xóa luôn các cart items
+        onDelete: 'CASCADE',
     },
 }, {
-    tableName: 'cart_items', // Đổi tên bảng cho chính xác
+    tableName: 'cart_items', 
     timestamps: false,
 });
 

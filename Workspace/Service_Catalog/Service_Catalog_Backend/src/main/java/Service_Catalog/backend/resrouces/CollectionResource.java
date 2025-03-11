@@ -2,6 +2,7 @@ package Service_Catalog.backend.resrouces;
 
 import Service_Catalog.backend.dto.CollectionDto;
 import Service_Catalog.backend.entities.Collection;
+import Service_Catalog.backend.entities.Collectionimage;
 import Service_Catalog.backend.entities.Product;
 import Service_Catalog.backend.services.CollectionService;
 import Service_Catalog.backend.services.CollectionimageService;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins= "*")
 @RestController
 @RequestMapping("/api/collection")
 public class CollectionResource {
@@ -30,6 +32,11 @@ public class CollectionResource {
     @GetMapping("/detailCollection/{id}")
     public Collection showCollectionDetail(@PathVariable Integer id) {
         return collectionService.getCollectionById(id);
+    }
+
+    @GetMapping("/listImageByCollection/{collectionId}")
+    public List<Collectionimage> showImageListByCollection(@PathVariable Integer collectionId) {
+        return collectionimageService.getAllByCollectionId(collectionId);
     }
 
     @PostMapping("/addCollection")

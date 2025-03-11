@@ -61,4 +61,12 @@ public class ProductService {
     public List<String> getAllGoldKaratByCategoryId(Integer categoryId) {
         return productRepository.getAllGoldKaratByCategoryId(categoryId);
     }
+
+    public List<String> getAllColorByCategoryId(Integer categoryId) {
+        return productRepository.getAllColorByCategoryId(categoryId);
+    }
+
+    public List<Product> getAllByCollectionId(Integer collectionId) {
+        return productRepository.findAllByCollectionId(collectionId);
+    }
 }

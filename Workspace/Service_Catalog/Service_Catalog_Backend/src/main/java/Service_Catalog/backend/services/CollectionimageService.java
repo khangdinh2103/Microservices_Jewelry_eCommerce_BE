@@ -35,4 +35,8 @@ public class CollectionimageService {
     public List<Collectionimage> getAllById(List<Integer> ids) {
         return collectionimageRepository.findAllById(ids);
     }
+
+    public List<Collectionimage> getAllByCollectionId(Integer collectionId) {
+        return collectionimageRepository.findAllByCollectionId(collectionId);
+    }
 }

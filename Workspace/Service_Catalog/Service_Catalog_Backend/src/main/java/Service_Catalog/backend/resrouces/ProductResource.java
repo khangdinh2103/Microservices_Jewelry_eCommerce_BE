@@ -64,6 +64,16 @@ public class ProductResource {
         return productService.getAllGoldKaratByCategoryId(categoryId);
     }
 
+    @GetMapping("/listColorByCategory/{categoryId}")
+    public List<String> showColorListByCategory(@PathVariable Integer categoryId) {
+        return productService.getAllColorByCategoryId(categoryId);
+    }
+
+    @GetMapping("/listProductByCollection/{collectionId}")
+    public List<Product> showProductListByCollection(@PathVariable Integer collectionId) {
+        return productService.getAllByCollectionId(collectionId);
+    }
+
     @PostMapping("/addProduct")
     public ResponseEntity<Product> addProduct(@RequestBody ProductCreateDto productDto) {
         Product product = new Product();

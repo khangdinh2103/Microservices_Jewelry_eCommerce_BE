@@ -28,7 +28,7 @@ public class ProductCreationRequest {
     private List<ImageRequest> imageSet;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<Review> reviews;
+
 
 
 }

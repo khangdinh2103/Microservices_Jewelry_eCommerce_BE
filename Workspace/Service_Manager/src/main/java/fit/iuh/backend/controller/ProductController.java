@@ -45,7 +45,7 @@ public class ProductController {
                                                         @RequestParam(required = false) String column,
                                                         @RequestParam(required = false) String direction,
                                                         @RequestParam(defaultValue = "0") int page,
-                                                        @RequestParam(defaultValue = "20")int size) {
+                                                        @RequestParam(defaultValue = "12")int size) {
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("status", HttpStatus.OK.value());
@@ -59,7 +59,7 @@ public class ProductController {
             summary = "Create a new product",
             description = "Creates a new product and stores it in the database."
     )
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity<Object> createProduct(@RequestBody ProductCreationRequest product) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("status", HttpStatus.CREATED.value());
@@ -88,7 +88,7 @@ public class ProductController {
             summary = "Update product",
             description = "Updates the details of an existing product by its ID."
     )
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update")
     public ResponseEntity<Object> updateProduct(@PathVariable Long id, @RequestBody ProductUpdateRequest product) {
 
         Map<String, Object> result = new LinkedHashMap<>();
@@ -104,7 +104,7 @@ public class ProductController {
             summary = "Delete product",
             description = "Deletes a product by its ID."
     )
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     public ResponseEntity<Object> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         Map<String, Object> result = new LinkedHashMap<>();
@@ -173,7 +173,7 @@ public class ProductController {
     }
 
     @Operation(summary = "Add images to product", description = "Adds multiple new images to a specific product")
-    @PostMapping("/{id}/images")
+    @PostMapping("/{id}/images/add-images")
     public ResponseEntity<Object> addImagesToProduct(@PathVariable Long id,
                                                      @RequestBody List<ImageRequest> imageRequests) {
 
@@ -186,7 +186,7 @@ public class ProductController {
     }
 
     @Operation(summary = "Delete image from product", description = "Deletes an image from a specific product")
-    @DeleteMapping("/{productId}/images/{imageId}")
+    @DeleteMapping("/{productId}/images/{imageId}/delete")
     public ResponseEntity<Object> deleteImageFromProduct(@PathVariable Long productId,
                                                          @PathVariable Long imageId) {
         productService.deleteImageFromProduct(productId,imageId);

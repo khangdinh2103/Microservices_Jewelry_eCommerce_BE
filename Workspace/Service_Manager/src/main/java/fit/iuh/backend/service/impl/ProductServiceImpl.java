@@ -58,19 +58,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductPageResponse getAllProducts(String keyword , String column,String direction, int page, int size) {
         String columnName = StringUtils.hasLength(column) ? column : "productId";
-        Sort.Direction sortDirection = Sort.Direction.ASC;
+        Sort.Direction sortDirection = Sort.Direction.DESC;
 
-        if (StringUtils.hasLength(direction) && direction.equalsIgnoreCase("desc")) {
-            sortDirection = Sort.Direction.DESC;
+        if (StringUtils.hasLength(direction) && direction.equalsIgnoreCase("asc")) {
+            sortDirection = Sort.Direction.ASC;
         }
         Sort.Order order = new Sort.Order(sortDirection, columnName);
 
-        int pageNo = 0;
-        if (page > 0) {
-            pageNo = page - 1;
-        }
 
-        Pageable pageable = PageRequest.of(pageNo, size, Sort.by(order));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(order));
 
         Page<Product> products;
         if (StringUtils.hasLength(keyword)) {
@@ -82,24 +79,32 @@ public class ProductServiceImpl implements ProductService {
 
 
         List<ProductResponse> productList = products.stream()
-                .map(product -> ProductResponse.builder()
-                        .productId(product.getProductId())
-                        .name(product.getName())
-                        .description(product.getDescription())
-                        .stock(product.getStock())
-                        .price(product.getPrice())
-                        .gender(product.getGender())
-                        .material(product.getMaterial())
-                        .goldKarat(product.getGoldKarat())
-                        .color(product.getColor())
-                        .brand(product.getBrand())
-                        .viewCount(product.getViewCount())
-                        .categoryId(product.getCategory().getCategoryId())
-                        .collectionId(product.getCollection().getCollectionId())
-                        .createdAt(product.getCreatedAt())
-                        .updatedAt(product.getUpdatedAt())
-                        .build()
-                )
+                .map(product -> {
+
+                    List<ImageResponse> imageResponses = product.getImageSet().stream()
+                            .filter(image -> image.isThumbnail())
+                            .map(image -> new ImageResponse(image.getImageId(), image.getImageURL(), image.isThumbnail()))
+                            .collect(Collectors.toList());
+
+                    return ProductResponse.builder()
+                            .productId(product.getProductId())
+                            .name(product.getName())
+                            .description(product.getDescription())
+                            .stock(product.getStock())
+                            .price(product.getPrice())
+                            .gender(product.getGender())
+                            .material(product.getMaterial())
+                            .goldKarat(product.getGoldKarat())
+                            .color(product.getColor())
+                            .brand(product.getBrand())
+                            .viewCount(product.getViewCount())
+                            .categoryId(product.getCategory().getCategoryId())
+                            .collectionId(product.getCollection().getCollectionId())
+                            .imageSet(imageResponses)
+                            .createdAt(product.getCreatedAt())
+                            .updatedAt(product.getUpdatedAt())
+                            .build();
+                })
                 .toList();
         ProductPageResponse response = new ProductPageResponse();
         response.setPageNumber(page);
@@ -157,6 +162,7 @@ public class ProductServiceImpl implements ProductService {
         product.setColor(req.getColor());
         product.setBrand(req.getBrand());
         product.setViewCount(0);
+        product.setReviews(null);
 
         Category category = categoryRepository.findById(req.getCategoryId())
                 .orElseThrow(() -> new OpenApiResourceNotFoundException("Category not found with id: " + req.getCategoryId()));
@@ -358,8 +364,7 @@ public class ProductServiceImpl implements ProductService {
             String line;
             int lineCount = 0;
 
-            // Bỏ qua dòng đầu tiên
-            line = br.readLine();
+            line = br.readLine(); // Read the header line
             if (line == null) {
                 throw new IllegalArgumentException("CSV file has no content");
             }
@@ -369,40 +374,48 @@ public class ProductServiceImpl implements ProductService {
                 try {
                     String[] data = line.split(",");
 
-                    if (data.length < 9) {
+                    if (data.length < 12) { // Adjust based on the number of expected fields
                         throw new IllegalArgumentException("Invalid CSV format at line " + lineCount);
                     }
 
                     Product product = new Product();
                     product.setName(data[0].trim());
                     product.setDescription(data[1].trim());
-                    product.setPrice(Double.parseDouble(data[2].trim()));
-                    product.setStock(Integer.parseInt(data[3].trim()));
-
-                    Category category = categoryRepository.findById(Long.parseLong(data[4]))
-                            .orElseThrow(() -> new OpenApiResourceNotFoundException("Category not found: " + data[4].trim()));
-                    product.setCategory(category);
-
-                    Collection collection = collectionRepository.findById(Long.parseLong(data[5]))
-                            .orElseThrow(() -> new OpenApiResourceNotFoundException("Collection not found with id: " + data[5].trim()));
-                    product.setCollection(collection);
-
-                    product.setMaterial(data[6].trim());
-                    product.setBrand(data[7].trim());
+                    product.setStock(Integer.parseInt(data[2].trim()));
+                    product.setPrice(Double.parseDouble(data[3].trim()));
+                    product.setGender(Integer.parseInt(data[4].trim()));
+                    product.setMaterial(data[5].trim());
+                    product.setGoldKarat(Integer.parseInt(data[6].trim()));
+                    product.setColor(data[7].trim());
+                    product.setBrand(data[8].trim());
+                    product.setViewCount(0);
                     product.setCreatedAt(LocalDateTime.now());
                     product.setUpdatedAt(LocalDateTime.now());
+
+
+                    Category category = categoryRepository.findById(Long.parseLong(data[9].trim()))
+                            .orElseThrow(() -> new OpenApiResourceNotFoundException("Category not found: " + data[9].trim()));
+                    product.setCategory(category);
+
+                    Collection collection = collectionRepository.findById(Long.parseLong(data[10].trim()))
+                            .orElseThrow(() -> new OpenApiResourceNotFoundException("Collection not found: " + data[10].trim()));
+                    product.setCollection(collection);
 
                     productRepository.save(product);
                     log.info("Imported product from line {}: {}", lineCount, product);
 
+
                     ProductImage productImage = new ProductImage();
                     productImage.setProduct(product);
-                    productImage.setImageURL(data[8].trim());
-                    productImage.setThumbnail(false);
+                    productImage.setImageURL(data[11].trim());
+                    productImage.setThumbnail(true);
                     productImageRepository.save(productImage);
-                    log.info("Saved image for product at line {}: {}", lineCount, data[8].trim());
 
-                } catch (Exception e) {
+                    log.info("Saved image for product at line {}: {}", lineCount);
+
+
+
+            } catch (Exception e) {
                     log.error("Error processing line {}: {}", lineCount, line, e);
                     throw new RuntimeException("Error processing CSV file at line " + lineCount, e);
                 }

@@ -14,7 +14,7 @@ public class ProductImage {
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
-
+    @Column(columnDefinition = "TEXT")
     private String imageURL;
     private boolean isThumbnail;
 

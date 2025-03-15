@@ -55,6 +55,7 @@ public class SecurityCofiguration {
                 .authorizeHttpRequests(
                         authz -> authz
                                 .requestMatchers(whiteList).permitAll()
+                                .requestMatchers("/api/v1/profile/**").authenticated()
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))// xử lý khi gửi token sai(chạy qua

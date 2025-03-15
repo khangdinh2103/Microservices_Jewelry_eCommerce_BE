@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqChangePasswordDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResCreateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUpdateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
+import com.iuh.edu.fit.BEJewelry.Architecture.util.SecurityUtil;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.annotation.ApiMessage;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.error.IdInvalidException;
 import com.turkraft.springfilter.boot.Filter;
@@ -92,5 +94,36 @@ public class UserController {
             throw new IdInvalidException("User với id = " + user.getId() + " không tồn tại");
         }
         return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(updateUser));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<ResUserDTO> getUserProfile() {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        User user = userService.handleGetUserByUserName(email);
+        return ResponseEntity.ok(userService.convertToResUserDTO(user));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<ResUpdateUserDTO> updateUserProfile(@RequestBody User user) {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        User existingUser = userService.handleGetUserByUserName(email);
+        user.setId(existingUser.getId());
+        User updatedUser = userService.handleUpdateUser(user);
+        return ResponseEntity.ok(userService.convertToResUpdateUserDTO(updatedUser));
+    }
+
+    @PutMapping("/profile/change-password")
+    public ResponseEntity<Void> changeUserPassword(@Valid @RequestBody ReqChangePasswordDTO reqChangePasswordDTO) {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        User user = userService.handleGetUserByUserName(email);
+        if (!passwordEncoder.matches(reqChangePasswordDTO.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không chính xác");
+        }
+        user.setPassword(passwordEncoder.encode(reqChangePasswordDTO.getNewPassword()));
+        userService.handleUpdateUser(user);
+        return ResponseEntity.ok().build();
     }
 }

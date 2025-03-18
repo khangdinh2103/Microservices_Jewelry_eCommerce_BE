@@ -1,0 +1,58 @@
+{
+    "account": {
+        "host": "localhost",
+        "port": 8012,
+        "mapping": "/account",
+        "actions": {
+        }
+    },
+    "administrator": {
+        "host": "localhost",
+        "port": 8022,
+        "mapping": "/admin",
+        "actions": {
+        }
+    },
+    "manager": {
+        "host": "localhost",
+        "port": 8032,
+        "mapping": "/manager",
+        "actions": {
+        }
+    },
+    "user": {
+        "host": "localhost",
+        "port": 8042,
+        "mapping": "/user",
+        "actions": {
+        }
+    },
+    "catalog": {
+        "host": "localhost",
+        "port": 8052,
+        "mapping": "/catalog",
+        "actions": {
+        }
+    },
+    "cart-order": {
+        "host": "localhost",
+        "port": 8062,
+        "mapping": "/cart-order",
+        "actions": {
+        }
+    },
+    "payment": {
+        "host": "localhost",
+        "port": 8072,
+        "mapping": "/payment",
+        "actions": {
+        }
+    },
+    "shipment": {
+        "host": "localhost",
+        "port": 8082,
+        "mapping": "/shipment",
+        "actions": {
+        }
+    }
+}

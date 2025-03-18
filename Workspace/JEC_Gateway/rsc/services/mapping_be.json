@@ -1,0 +1,65 @@
+{
+    "account": {
+        "host": "localhost",
+        "port": 8011,
+        "mapping": "/api/account",
+        "actions": {
+        }
+    },
+    "administrator": {
+        "host": "localhost",
+        "port": 8021,
+        "mapping": "/api/admin",
+        "actions": {
+        }
+    },
+    "manager": {
+        "host": "localhost",
+        "port": 8031,
+        "mapping": "/api/manager",
+        "actions": {
+        }
+    },
+    "user": {
+        "host": "localhost",
+        "port": 8041,
+        "mapping": "/api/user",
+        "actions": {
+        }
+    },
+    "catalog": {
+        "host": "localhost",
+        "port": 8051,
+        "mapping": "/api/catalog",
+        "actions": {
+        }
+    },
+    "cart-order": {
+        "host": "localhost",
+        "port": 8061,
+        "mapping": "/api/cart-order",
+        "actions": {
+        }
+    },
+    "payment": {
+        "host": "localhost",
+        "port": 8071,
+        "mapping": "/api/payment",
+        "actions": {
+        }
+    },
+    "shipment": {
+        "host": "localhost",
+        "port": 8081,
+        "mapping": "/api/shipment",
+        "actions": {
+        }
+    },
+    "chatbot": {
+        "host": "localhost",
+        "port": 8091,
+        "mapping": "/api/chatbot",
+        "actions": {
+        }
+    }
+}

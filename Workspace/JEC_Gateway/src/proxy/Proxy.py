@@ -33,7 +33,6 @@ class Proxy:
             else:
                 raise HTTPException(status_code=500, detail="Invalid route")
             url = f"http://{host}:{port}{route}/{action}"
-            print(f"URL: {url}")
             headers = request.headers
             method = request.method.lower()
 

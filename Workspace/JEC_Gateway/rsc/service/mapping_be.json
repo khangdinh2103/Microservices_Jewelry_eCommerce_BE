@@ -32,7 +32,6 @@
         "port": 8051,
         "route": "",
         "actions": {
-            "order": ["admin"]
         }
     },
     "cart-order": {

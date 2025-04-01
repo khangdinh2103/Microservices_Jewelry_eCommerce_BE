@@ -1,10 +1,13 @@
 import uvicorn
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from starlette.requests import Request
 
 from constant.MappingConfig import MappingConfig
 from middleware.AuthenticationMiddleware import AuthenticationMiddleware
 from proxy.Proxy import Proxy
+
+load_dotenv()
 
 _app = FastAPI()
 

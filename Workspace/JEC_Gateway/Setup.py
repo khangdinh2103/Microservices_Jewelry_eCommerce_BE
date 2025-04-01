@@ -19,5 +19,8 @@ setup(
 
         # Data validation
         "pydantic",
+
+        # Miscellaneous
+        "python-dotenv",
     ]
 )

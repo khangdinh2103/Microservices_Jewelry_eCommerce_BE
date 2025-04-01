@@ -19,7 +19,9 @@ class Proxy:
         allowed_roles = actions[action]
         user_role = request.state.user.get("role")
 
-        if user_role not in allowed_roles:
+        if allowed_roles == [] or user_role in allowed_roles:
+            pass
+        else:
             raise HTTPException(status_code=403, detail="You do not have permission to access this resource")
 
         async with httpx.AsyncClient() as client:

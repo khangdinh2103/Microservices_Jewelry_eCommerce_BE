@@ -10,6 +10,14 @@ class AuthenticationMiddleware:
     @staticmethod
     async def authenticate(request: Request, call_next):
         if request.url.path.startswith("/"):
+            path_parts = request.url.path.strip("/").split("/")
+            if path_parts and path_parts[0] == "api":
+                path_parts.pop(0)
+            service = path_parts[0] if path_parts else ""
+            if service == "account":
+                response = await call_next(request)
+                return response
+
             authorization = request.headers.get("Authorization")
             if not authorization:
                 return JSONResponse(status_code=401, content={"detail": "Authorization header missing"})

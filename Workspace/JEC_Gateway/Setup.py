@@ -10,8 +10,7 @@ setup(
         "uvicorn",
 
         # JWT libraries
-        "jwt",
-        "PyJWT",
+        "PyJWT==1.7.1",
 
         # HTTP clients
         "requests",

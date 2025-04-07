@@ -37,4 +37,34 @@ const getLocation = async (req, res) => {
     }
 };
 
-module.exports = { getLocation };
+const getDistance = async (req, res) => {
+    const { startLat, startLng, endLat, endLng } = req.query;
+  
+    if (!startLat || !startLng || !endLat || !endLng) {
+      return res.status(400).json({ error: 'Vui lòng cung cấp đủ tọa độ!' });
+    }
+  
+    const apiKey = '0c5748d0-e17f-4e95-a409-37d6b1edc231';  // Thay thế bằng GraphHopper API Key
+    const graphHopperUrl = `https://graphhopper.com/api/1/route?point=${startLat},${startLng}&point=${endLat},${endLng}&vehicle=car&key=${apiKey}`;
+  
+    try {
+      const response = await axios.get(graphHopperUrl);
+      const result = response.data;
+  
+      const distanceMeters = result.paths[0].distance;  // Đo khoảng cách (mét)
+      const durationSeconds = result.paths[0].time;    // Thời gian (giây)
+  
+      res.json({
+        message: 'Tính khoảng cách thành công!',
+        from: { lat: startLat, lng: startLng },
+        to: { lat: endLat, lng: endLng },
+        distance_km: (distanceMeters / 1000).toFixed(2),  // Chuyển từ mét sang km
+        duration_minutes: (durationSeconds / 60000).toFixed(1),  // Chuyển từ giây sang phút
+      });
+    } catch (error) {
+      console.error('Lỗi gọi GraphHopper API:', error.message);
+      res.status(500).json({ error: 'Không thể tính khoảng cách từ GraphHopper' });
+    }
+  };
+
+module.exports = { getLocation, getDistance };

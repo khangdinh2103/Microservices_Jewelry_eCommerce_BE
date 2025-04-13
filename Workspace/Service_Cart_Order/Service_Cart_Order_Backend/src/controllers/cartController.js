@@ -38,6 +38,7 @@ const getCartByUserId = async (req, res) => {
         }
 
         const result = cart.cartItems.map(detail => ({
+            cartItemID: detail.cartItemID,
             productID: detail.product?.productID ?? null, // Đảm bảo có productID
             productName: detail.product?.name ?? 'N/A',
             quantity: detail.quantity,

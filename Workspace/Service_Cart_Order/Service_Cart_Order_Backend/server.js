@@ -24,10 +24,10 @@ sequelize.sync({ force: false })
     .then(() => {
         console.log('Database synchronized...');
         
-        app.listen(3000, () => {
-            console.log('Server running at http://localhost:3000');
+        app.listen(8106, () => {
+            console.log('Server running at http://localhost:8106');
         });
     })
     .catch((error) => {
         console.error('Failed to synchronize database:', error);
-    });  
+    });

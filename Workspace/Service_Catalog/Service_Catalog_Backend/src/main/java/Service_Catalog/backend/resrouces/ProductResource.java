@@ -74,6 +74,15 @@ public class ProductResource {
         return productService.getAllByCollectionId(collectionId);
     }
 
+    @GetMapping("/listBestSellingProduct")
+    public List<Product> showBestSellingProduct() {
+        return productService.getTop10BestSellingProducts();
+    }
+
+    @GetMapping("/listSimiliarProduct/{id}")
+    public List<Product> showSimiliarProduct(@PathVariable Integer id) {
+        return productService.getSimilarProducts(id);
+    }
     @PostMapping("/addProduct")
     public ResponseEntity<Product> addProduct(@RequestBody ProductCreateDto productDto) {
         Product product = new Product();

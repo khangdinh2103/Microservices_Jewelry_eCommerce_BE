@@ -1,17 +1,23 @@
 package Service_Catalog.backend.services;
 
 import Service_Catalog.backend.entities.Product;
+import Service_Catalog.backend.entities.ProductSalesSummary;
 import Service_Catalog.backend.repositories.ProductRepository;
+import Service_Catalog.backend.repositories.ProductSalesSummaryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
 public class ProductService {
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ProductSalesSummaryRepository productSalesSummaryRepository;
 
     public Product addProduct(Product product) {
         product.setCreatedAt(Instant.now());
@@ -69,4 +75,23 @@ public class ProductService {
     public List<Product> getAllByCollectionId(Integer collectionId) {
         return productRepository.findAllByCollectionId(collectionId);
     }
+
+    public List<Product> getTop10BestSellingProducts() {
+        Instant threeMonthsAgo = Instant.now().minus(3, ChronoUnit.MONTHS);
+        return productSalesSummaryRepository.findTop10BestSellingProducts(threeMonthsAgo);
+    }
+
+    public List<Product> getSimilarProducts(Integer productId) {
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product == null) {
+            return null;
+        }
+        return productRepository.findSimilarProducts(
+                productId,
+                product.getCollectionId() != null ? product.getCollectionId().getId() : null,
+                product.getBrand(),
+                product.getCategoryId() != null ? product.getCategoryId().getId() : null
+        );
+    }
+
 }

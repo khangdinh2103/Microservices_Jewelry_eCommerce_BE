@@ -1,5 +1,6 @@
 package Service_Catalog.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -73,5 +74,13 @@ public class Product {
 
     @Column(name = "size")
     private String size;
+
+    @OneToMany(mappedBy = "productId")
+    @JsonIgnore
+    private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "productId")
+    @JsonIgnore
+    private List<ProductSalesSummary> productSalesSummaries = new ArrayList<>();
 
 }

@@ -3,6 +3,7 @@ package Service_Catalog.backend.repositories;
 import Service_Catalog.backend.entities.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -29,4 +30,17 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query("SELECT p FROM Product p WHERE p.collectionId.id = ?1")
     List<Product> findAllByCollectionId(Integer collectionId);
+
+ @Query("SELECT p FROM Product p WHERE " +
+         "(p.collectionId.id = :collectionId OR " +
+         "(p.brand = :brand AND p.categoryId.id = :categoryId) OR " +
+         "p.categoryId.id = :categoryId) " +
+         "AND p.id <> :productId " +
+         "ORDER BY " +
+         "CASE WHEN p.collectionId.id = :collectionId THEN 1 ELSE " +
+         "CASE WHEN p.brand = :brand AND p.categoryId.id = :categoryId THEN 2 ELSE 3 END END")
+ List<Product> findSimilarProducts(@Param("productId") Integer productId,
+                                   @Param("collectionId") Integer collectionId,
+                                   @Param("brand") String brand,
+                                   @Param("categoryId") Integer categoryId);
 }

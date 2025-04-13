@@ -6,26 +6,26 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-@Entity
+import java.time.LocalDate;
+
 @Getter
 @Setter
-public class Review {
+@Entity
+@Table(name = "product_sales_summary")
+public class ProductSalesSummary {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "content")
-    private String content;
+    @Column(name = "quantity_sold")
+    private Integer quantitySold;
 
-    @Column(name = "rating", nullable = false)
-    private Integer rating;
-
-    @Column(name = "userid")
-    private Integer userid;
+    @Column(name = "order_date")
+    private LocalDate orderDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "productid")
     private Product productId;
-
 }

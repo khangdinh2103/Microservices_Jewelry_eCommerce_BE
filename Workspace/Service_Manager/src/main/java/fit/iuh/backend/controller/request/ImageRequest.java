@@ -1,6 +1,7 @@
 package fit.iuh.backend.controller.request;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Getter
@@ -10,6 +11,8 @@ import lombok.*;
 @AllArgsConstructor
 public class ImageRequest {
     private String url;
+    @JsonProperty("isThumbnail")
     private boolean thumbnail;
+
 
 }

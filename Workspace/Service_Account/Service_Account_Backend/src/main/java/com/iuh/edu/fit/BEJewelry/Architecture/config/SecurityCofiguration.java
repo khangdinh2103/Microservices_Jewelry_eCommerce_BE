@@ -86,7 +86,7 @@ public class SecurityCofiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(whiteList).permitAll()
-                        .requestMatchers("/api/v1/files/**").authenticated()
+                        .requestMatchers("/api/v1/files/{fileName:.+}").permitAll()
                         .requestMatchers("/api/v1/profile/**").authenticated()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

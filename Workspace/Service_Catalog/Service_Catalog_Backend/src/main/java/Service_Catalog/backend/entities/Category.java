@@ -11,22 +11,29 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "category")
+@Table(name = "categories")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "categoryid", nullable = false)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "url")
+    private String url;
+
     @Column(name = "description", length = Integer.MAX_VALUE)
     private String description;
 
-    @OneToMany(mappedBy = "categoryId")
-    @JsonIgnoreProperties({"categoryId"})
+    @OneToMany(mappedBy = "category")
+    @JsonIgnoreProperties({"category"})
     private List<Product> products = new ArrayList<>();
 
+    // Phương thức tương thích ngược
+    public List<Product> getProducts() {
+        return products;
+    }
 }

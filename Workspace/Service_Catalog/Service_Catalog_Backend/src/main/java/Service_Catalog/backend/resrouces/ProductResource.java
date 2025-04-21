@@ -5,11 +5,11 @@ import Service_Catalog.backend.dto.ProductUpdateDto;
 import Service_Catalog.backend.entities.Category;
 import Service_Catalog.backend.entities.Collection;
 import Service_Catalog.backend.entities.Product;
-import Service_Catalog.backend.entities.Productimage;
+import Service_Catalog.backend.entities.ProductImage;
 import Service_Catalog.backend.services.CategoryService;
 import Service_Catalog.backend.services.CollectionService;
 import Service_Catalog.backend.services.ProductService;
-import Service_Catalog.backend.services.ProductimageService;
+import Service_Catalog.backend.services.ProductImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +27,7 @@ public class ProductResource {
     @Autowired
     private CategoryService categoryService;
     @Autowired
-    private ProductimageService productimageService;
+    private ProductImageService productimageService;
 
     @GetMapping("/listProduct")
     public List<Product> showProductList() {
@@ -110,7 +110,7 @@ public class ProductResource {
         //Khong test them hinh anh, can hoan thien productimage api truoc
 
         if (productDto.getProductImageIds() != null) {
-            List<Productimage> images = productimageService.getAllById(productDto.getProductImageIds());
+            List<ProductImage> images = productimageService.getAllById(productDto.getProductImageIds());
             product.setProductImages(images);
         }
 

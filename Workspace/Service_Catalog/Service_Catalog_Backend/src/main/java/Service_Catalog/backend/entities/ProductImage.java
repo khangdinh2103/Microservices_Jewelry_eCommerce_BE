@@ -6,28 +6,29 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDate;
-
 @Getter
 @Setter
 @Entity
-@Table(name = "product_sales_summary")
-public class ProductSalesSummary {
+@Table(name = "product_images")
+public class ProductImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "quantity_sold")
-    private Integer quantitySold;
-
-    @Column(name = "order_date")
-    private LocalDate orderDate;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "product_id")
     private Product product;
+
+    @Column(name = "image_url", nullable = false, length = Integer.MAX_VALUE)
+    private String imageUrl;
+
+    @Column(name = "is_primary")
+    private Boolean isPrimary;
+
+    @Column(name = "sort_order")
+    private Integer sortOrder;
 
     // Phương thức tương thích ngược
     @Deprecated
@@ -38,5 +39,15 @@ public class ProductSalesSummary {
     @Deprecated
     public void setProductId(Product product) {
         this.product = product;
+    }
+
+    @Deprecated
+    public Boolean getIsThumbnail() {
+        return this.isPrimary;
+    }
+
+    @Deprecated
+    public void setIsThumbnail(Boolean isThumbnail) {
+        this.isPrimary = isThumbnail;
     }
 }

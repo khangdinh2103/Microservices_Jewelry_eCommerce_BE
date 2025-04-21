@@ -2,10 +2,10 @@ package Service_Catalog.backend.resrouces;
 
 import Service_Catalog.backend.dto.CollectionDto;
 import Service_Catalog.backend.entities.Collection;
-import Service_Catalog.backend.entities.Collectionimage;
+import Service_Catalog.backend.entities.CollectionImage;
 import Service_Catalog.backend.entities.Product;
 import Service_Catalog.backend.services.CollectionService;
-import Service_Catalog.backend.services.CollectionimageService;
+import Service_Catalog.backend.services.CollectionImageService;
 import Service_Catalog.backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class CollectionResource {
     @Autowired
     private CollectionService collectionService;
     @Autowired
-    private CollectionimageService collectionimageService;
+    private CollectionImageService collectionimageService;
     @Autowired
     private ProductService productService;
 
@@ -35,7 +35,7 @@ public class CollectionResource {
     }
 
     @GetMapping("/listImageByCollection/{collectionId}")
-    public List<Collectionimage> showImageListByCollection(@PathVariable Integer collectionId) {
+    public List<CollectionImage> showImageListByCollection(@PathVariable Integer collectionId) {
         return collectionimageService.getAllByCollectionId(collectionId);
     }
 

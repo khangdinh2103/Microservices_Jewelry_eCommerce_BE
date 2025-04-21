@@ -9,22 +9,21 @@ import org.hibernate.annotations.OnDeleteAction;
 @Getter
 @Setter
 @Entity
-@Table(name = "collectionimage")
-public class Collectionimage {
+@Table(name = "product_features")
+public class ProductFeature {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "imageid", nullable = false)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "collectionid")
-    private Collection collectionId;
+    @JoinColumn(name = "product_id")
+    private Product product;
 
-    @Column(name = "imageurl", nullable = false, length = Integer.MAX_VALUE)
-    private String imageUrl;
+    @Column(name = "name", nullable = false)
+    private String name;
 
-    @Column(name = "isthumbnail")
-    private Boolean isThumbnail;
-
+    @Column(name = "value")
+    private String value;
 }

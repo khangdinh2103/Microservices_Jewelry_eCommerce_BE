@@ -198,7 +198,8 @@ public class AuthController {
     }
 
     @PostMapping("/auth/forgot-password")
-    public ResponseEntity<RestResponse<String>> forgotPassword(@Valid @RequestBody ReqForgotPasswordDTO request) {
+    public ResponseEntity<RestResponse<String>> forgotPassword(@Valid @RequestBody ReqForgotPasswordDTO request)
+            throws PermissionException {
         String result = authService.forgotPassword(request.getEmail());
         RestResponse<String> response = new RestResponse<>(200, null, "Mã xác nhận đã gửi thành công", result);
         return ResponseEntity.ok(response);

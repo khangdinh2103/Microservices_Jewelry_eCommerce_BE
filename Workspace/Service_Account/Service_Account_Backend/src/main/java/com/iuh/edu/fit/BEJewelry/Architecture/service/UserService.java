@@ -17,15 +17,18 @@ import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResCreateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUpdateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
+import com.iuh.edu.fit.BEJewelry.Architecture.repository.RoleRepository;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.UserRepository;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final RoleService roleService;
 
-    public UserService(UserRepository userRepository, RoleService roleService) {
+    public UserService(UserRepository userRepository, RoleService roleService, RoleRepository roleRepository) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.roleService = roleService;
     }
 
@@ -48,11 +51,11 @@ public class UserService {
     }
 
     public User handleCreateUser(User user) {
-        if (user.getRole() != null) {
-            Role r = this.roleService.fetchById(user.getRole().getId());
-            user.setRole(r);
+        if (user.getRole() == null) {
+            Role userRole = this.roleRepository.findByName("USER");
+            user.setRole(userRole);
         }
-        return this.userRepository.save(user);
+        return userRepository.save(user);
     }
 
     public User handleUpdateUser(User reqUser) {

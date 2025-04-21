@@ -25,6 +25,17 @@ public class RoleService {
         this.permissionRepository = permissionRepository;
     }
 
+    // ... existing code ...
+    
+    /**
+     * Get a role by its name
+     * @param name the name of the role to find
+     * @return the Role object if found, null otherwise
+     */
+    public Role getRoleByName(String name) {
+        return this.roleRepository.findByName(name);
+    }
+
     public boolean existByName(String name) {
         return this.roleRepository.existsByName(name);
     }

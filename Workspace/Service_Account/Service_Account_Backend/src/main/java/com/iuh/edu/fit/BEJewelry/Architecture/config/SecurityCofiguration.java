@@ -4,6 +4,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -31,6 +32,10 @@ import com.nimbusds.jose.util.Base64;
 
 import lombok.RequiredArgsConstructor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
@@ -39,33 +44,18 @@ public class SecurityCofiguration {
     @Value("${huy.jwt.base64-secret}")
     private String jwtKey;
 
+    private static final Logger LOG = LoggerFactory.getLogger(SecurityAutoConfiguration.class);
+
     private final CustomOAuth2UserService customOAuth2UserService;
 
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    @Order(1)
-    public SecurityFilterChain oauth2FilterChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher("/oauth2/**")
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/oauth2/**").permitAll()
-                        .anyRequest().authenticated())
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/oauth2/auth/google-login")
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .defaultSuccessUrl("/oauth2/auth/success", true)
-                        .failureUrl("/oauth2/auth/failure"));
-
-        return http.build();
-    }
 
     @Bean
-    @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http,
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
 
@@ -73,7 +63,8 @@ public class SecurityCofiguration {
                 "/",
                 "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/register",
                 "/storage/**", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password",
-                "/api/v1/auth/verify-email"
+                "/api/v1/auth/verify-email","/api/v1/auth/google", "/oauth2/**", "/login/oauth2/code/**", 
+                "/api/v1/auth/test-oauth", "/api/v1/auth/google-login-link", "/api/v1/auth/google-redirect","/login/**"
         };
         http
                 .securityMatcher("/api/**") // Chỉ áp dụng cho API
@@ -85,15 +76,44 @@ public class SecurityCofiguration {
                                 .requestMatchers("/api/v1/profile/**").authenticated()
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
-                        .authenticationEntryPoint(customAuthenticationEntryPoint))// xử lý khi gửi token sai(chạy qua
-                                                                                  // BearerFilter)
+                        .authenticationEntryPoint(customAuthenticationEntryPoint))
                 .exceptionHandling(
                         exceptions -> exceptions
-                                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) // 401
-                                .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) // 403
+                                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                                .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
                 .formLogin(f -> f.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                // Don't use STATELESS for the main filter chain either
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
 
+        return http.build();
+    }
+
+    @Bean
+    @Order(1)
+    public SecurityFilterChain oauth2FilterChain(HttpSecurity http) throws Exception {
+        LOG.info("Xử lý yêu cầu OAuth2 cho /oauth2/** hoặc /login/oauth2/code/**");
+        http
+            .securityMatcher("/oauth2/**", "/login/oauth2/code/**", "/login/**")
+            .csrf(csrf -> csrf.disable())
+            // Important: Enable sessions for OAuth2 flow
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+            .authorizeHttpRequests(authorize -> authorize
+                .anyRequest().permitAll()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .defaultSuccessUrl("/api/v1/auth/google", true)
+                .authorizationEndpoint(authorization -> authorization
+                    .baseUri("/oauth2/authorization")
+                )
+                .redirectionEndpoint(redirection -> redirection
+                    .baseUri("/login/oauth2/code/*")
+                )
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService)
+                )
+            );
+        
         return http.build();
     }
 

@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
@@ -27,6 +28,19 @@ public class UserService {
         this.roleService = roleService;
     }
 
+
+    private PasswordEncoder passwordEncoder;
+    
+    /**
+     * Get a Role by its name
+     * @param roleName the name of the role to find
+     * @return the Role object if found, null otherwise
+     */
+    public Role getRoleByName(String roleName) {
+        return this.roleService.getRoleByName(roleName);
+    }
+    
+    
     public User handleCreateUser(User user) {
         // check role
         if (user.getRole() != null) {
@@ -158,5 +172,12 @@ public class UserService {
 
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
+    }
+
+    // Add this method to your UserService class
+    public User handleCreateUserWithRawPassword(User user) {
+        // Encode the password before saving
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return this.handleCreateUser(user);
     }
 }

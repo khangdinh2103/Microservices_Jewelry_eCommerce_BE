@@ -93,7 +93,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         permissions.add(new Permission("Upload avatar", "/api/v1/profile/avatar", "POST", "PROFILES"));
 
         // File operations
-        permissions.add(new Permission("Download file", "/api/v1/files/{fileName}", "GET", "FILES"));
+        permissions.add(new Permission("Download file", "/api/v1/files/{fileName:.+}", "GET", "FILES"));
         permissions.add(new Permission("Upload file", "/api/v1/files/upload", "POST", "FILES"));
 
         // Product management
@@ -143,7 +143,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         userPermissions.add(getPermissionByPath("/api/v1/products", "GET", allPermissions));
         userPermissions.add(getPermissionByPath("/api/v1/orders", "POST", allPermissions));
         userPermissions.add(getPermissionByPath("/api/v1/orders/{id}", "GET", allPermissions));
-        userPermissions.add(getPermissionByPath("/api/v1/files/{fileName}", "GET", allPermissions));
+        userPermissions.add(getPermissionByPath("/api/v1/files/{fileName:.+}", "GET", allPermissions));
 
         userRole.setPermissions(userPermissions);
         this.roleRepository.save(userRole);

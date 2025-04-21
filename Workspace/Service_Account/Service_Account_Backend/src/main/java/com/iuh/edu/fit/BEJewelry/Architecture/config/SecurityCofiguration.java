@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity(securedEnabled = true)
 @RequiredArgsConstructor
 public class SecurityCofiguration {
-    @Value("${huy.jwt.base64-secret}")
+    @Value("${jec.jwt.base64-secret}")
     private String jwtKey;
 
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -71,26 +71,29 @@ public class SecurityCofiguration {
 
         String[] whiteList = {
                 "/",
-                "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/register",
-                "/storage/**", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password",
+                "/api/v1/auth/login",
+                "/api/v1/auth/refresh",
+                "/api/v1/auth/register",
+                "/storage/**",
+                "/api/v1/auth/forgot-password",
+                "/api/v1/auth/reset-password",
                 "/api/v1/auth/verify-email"
         };
+
         http
-                .securityMatcher("/api/**") // Chỉ áp dụng cho API
+                .securityMatcher("/api/**")
                 .csrf(c -> c.disable())
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(
-                        authz -> authz
-                                .requestMatchers(whiteList).permitAll()
-                                .requestMatchers("/api/v1/profile/**").authenticated()
-                                .anyRequest().authenticated())
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
-                        .authenticationEntryPoint(customAuthenticationEntryPoint))// xử lý khi gửi token sai(chạy qua
-                                                                                  // BearerFilter)
-                .exceptionHandling(
-                        exceptions -> exceptions
-                                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) // 401
-                                .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) // 403
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(whiteList).permitAll()
+                        .requestMatchers("/api/v1/profile/**").authenticated()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint(customAuthenticationEntryPoint))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
                 .formLogin(f -> f.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
@@ -111,6 +114,7 @@ public class SecurityCofiguration {
     public JwtDecoder jwtDecoder() {
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(
                 getSecretKey()).macAlgorithm(SecurityUtil.JWT_ALGORITHM).build();
+
         return token -> {
             try {
                 return jwtDecoder.decode(token);
@@ -131,5 +135,4 @@ public class SecurityCofiguration {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
     }
-
 }

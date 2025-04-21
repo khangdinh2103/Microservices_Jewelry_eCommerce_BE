@@ -3,6 +3,7 @@ package com.iuh.edu.fit.BEJewelry.Architecture.controller;
 import java.util.Base64;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,9 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 @RestController
 @RequestMapping("/oauth2")
 public class GoogleController {
+    
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
 
     @PostMapping("/auth/google-login")
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> request) {
@@ -26,13 +30,11 @@ public class GoogleController {
             String token = request.get("token");
             System.out.println("Received token: " + token);
 
-            // Giải mã Google ID Token
             DecodedJWT decodedJWT = JWT.decode(token);
             String payloadJson = new String(Base64.getDecoder().decode(decodedJWT.getPayload()));
 
-            // Kiểm tra tính hợp lệ
             String audience = decodedJWT.getAudience().get(0);
-            if (!"909859862292-ssitcqus7ah3pg6kef552vv71ufmkbk1.apps.googleusercontent.com".equals(audience)) {
+            if (!googleClientId.equals(audience)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Google Token Audience");
             }
 

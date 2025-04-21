@@ -39,15 +39,30 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1")
 public class UserController {
     private final UserService userService;
-
     private final PasswordEncoder passwordEncoder;
-
     private final FileStorageService fileStorageService;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder, FileStorageService fileStorageService) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder,
+            FileStorageService fileStorageService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.fileStorageService = fileStorageService;
+    }
+
+    @GetMapping("/users/{id}")
+    @ApiMessage("fetch user by id")
+    public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") long id) throws IdInvalidException {
+        User fetchUser = this.userService.fetchUserById(id);
+        if (fetchUser == null) {
+            throw new IdInvalidException("User với id = " + id + " không tồn tại");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.convertToResUserDTO(fetchUser));
+    }
+
+    @GetMapping("/users")
+    @ApiMessage("Fetches all users")
+    public ResponseEntity<ResultPaginationDTO> getAllUser(@Filter Specification<User> spec, Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser(spec, pageable));
     }
 
     @PostMapping("/users")
@@ -65,38 +80,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(newUser));
     }
 
-    @DeleteMapping("/users/{id}")
-    @ApiMessage("Delete a user")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id) throws IdInvalidException {
-        User currentUser = this.userService.fetchUserById(id);
-        if (currentUser == null) {
-            throw new IdInvalidException("User với id = " + id + " không tồn tại");
-        }
-
-        this.userService.handleDeleteUser(id);
-        return ResponseEntity.ok(null);
-    }
-
-    // fetch user by id
-    @GetMapping("/users/{id}")
-    @ApiMessage("fetch user by id")
-    public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") long id) throws IdInvalidException {
-        User fetchUser = this.userService.fetchUserById(id);
-        if (fetchUser == null) {
-            throw new IdInvalidException("User với id = " + id + " không tồn tại");
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.convertToResUserDTO(fetchUser));
-    }
-
-    // fetch all users
-    @GetMapping("/users")
-    @ApiMessage("Fetches all users")
-    public ResponseEntity<ResultPaginationDTO> getAllUser(@Filter Specification<User> spec,
-            Pageable pageable) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser(spec, pageable));
-    }
-
     @PutMapping("/users")
     @ApiMessage("Update a user")
     public ResponseEntity<ResUpdateUserDTO> updateUser(@RequestBody User user) throws IdInvalidException {
@@ -105,6 +88,17 @@ public class UserController {
             throw new IdInvalidException("User với id = " + user.getId() + " không tồn tại");
         }
         return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(updateUser));
+    }
+
+    @DeleteMapping("/users/{id}")
+    @ApiMessage("Delete a user")
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id) throws IdInvalidException {
+        User currentUser = this.userService.fetchUserById(id);
+        if (currentUser == null) {
+            throw new IdInvalidException("User với id = " + id + " không tồn tại");
+        }
+        this.userService.handleDeleteUser(id);
+        return ResponseEntity.ok(null);
     }
 
     @GetMapping("/profile")
@@ -130,9 +124,11 @@ public class UserController {
         String email = SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         User user = userService.handleGetUserByUserName(email);
+
         if (!passwordEncoder.matches(reqChangePasswordDTO.getOldPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu cũ không chính xác");
         }
+
         user.setPassword(passwordEncoder.encode(reqChangePasswordDTO.getNewPassword()));
         userService.handleUpdateUser(user);
         return ResponseEntity.ok().build();
@@ -143,15 +139,11 @@ public class UserController {
         String email = SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         User user = userService.handleGetUserByUserName(email);
-        
-        // Store the file
+
         String fileName = fileStorageService.storeFile(file);
-        
-        // Update user's avatar path
         user.setAvatar(fileName);
         userService.handleUpdateUser(user);
-        
-        // Build response
+
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/v1/files/")
                 .path(fileName)
@@ -160,7 +152,7 @@ public class UserController {
         Map<String, String> response = new HashMap<>();
         response.put("avatar", fileName);
         response.put("avatarUrl", fileDownloadUri);
-        
+
         return ResponseEntity.ok(response);
     }
 }

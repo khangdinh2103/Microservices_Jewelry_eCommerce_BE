@@ -37,13 +37,13 @@ public class SecurityUtil {
 
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
 
-    @Value("${huy.jwt.base64-secret}")
+    @Value("${jec.jwt.base64-secret}")
     private String jwtKey;
 
-    @Value("${huy.jwt.access-token-validity-in-seconds}")
+    @Value("${jec.jwt.access-token-validity-in-seconds}")
     private long accessTokenExpiration;
 
-    @Value("${huy.jwt.refresh-token-validity-in-seconds}")
+    @Value("${jec.jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenExpiration;
 
     public String createAccessToken(String email, ResLoginDTO dto) {

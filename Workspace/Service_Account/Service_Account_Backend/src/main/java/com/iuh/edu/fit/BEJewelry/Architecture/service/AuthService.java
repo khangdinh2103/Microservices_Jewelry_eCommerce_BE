@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.api.client.util.Value;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.UserRepository;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.error.PermissionException;
@@ -18,20 +20,22 @@ import lombok.RequiredArgsConstructor;
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService; // Service gửi email
+    private final EmailService emailService;
 
-    public String forgotPassword(String email) {
+    @Value("${app.frontend.url:http://localhost:8201}")
+    private String frontendUrl;
+
+    public String forgotPassword(String email) throws PermissionException {
         User user = userRepository.findByEmail(email);
-        // if (userOpt.isEmpty()) {
-        // throw new PermissionException("Không tìm thấy tài khoản với email này.");
-        // }
+        if (user == null) {
+            throw new PermissionException("Không tìm thấy tài khoản với email này.");
+        }
 
-        // User user = userOpt.get();
         String token = generateResetToken();
         user.setResetToken(token);
         userRepository.save(user);
 
-        String resetLink = "http://localhost:4173/reset-password?token=" + token;
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
         try {
             emailService.sendResetPasswordEmail(user.getEmail(), resetLink);
         } catch (MessagingException e) {

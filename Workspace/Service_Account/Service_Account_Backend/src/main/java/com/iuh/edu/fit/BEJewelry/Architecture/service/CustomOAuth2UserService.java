@@ -32,18 +32,17 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         Optional<User> existingUser = userRepository.findOptionalByEmail(email);
 
-        User user;
         if (existingUser.isEmpty()) {
-            // Nếu User chưa tồn tại, tạo mới
-            user = new User();
-            user.setEmail(email);
-            user.setName((String) attributes.get("name"));
-            user.setPassword(""); // OAuth2 không dùng password
-            userRepository.save(user);
-        } else {
-            user = existingUser.get();
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setName((String) attributes.get("name"));
+            newUser.setPassword(""); // OAuth2 không dùng password
+            userRepository.save(newUser);
         }
 
-        return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("USER")), attributes, "email");
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority("USER")),
+                attributes,
+                "email");
     }
 }

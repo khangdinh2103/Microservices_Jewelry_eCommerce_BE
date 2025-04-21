@@ -33,25 +33,19 @@ public class FileStorageService {
     }
 
     public String storeFile(MultipartFile file) {
-        // Normalize file name
         String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
         String fileExtension = "";
         
         try {
-            // Check if the file's name contains invalid characters
             if (originalFileName.contains("..")) {
                 throw new RuntimeException("Sorry! Filename contains invalid path sequence " + originalFileName);
             }
 
-            // Get file extension
-            if(originalFileName.contains(".")) {
+            if (originalFileName.contains(".")) {
                 fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
             }
 
-            // Generate unique file name
             String fileName = UUID.randomUUID().toString() + fileExtension;
-
-            // Copy file to the target location
             Path targetLocation = this.fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
@@ -65,6 +59,7 @@ public class FileStorageService {
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
             Resource resource = new UrlResource(filePath.toUri());
+            
             if (resource.exists()) {
                 return resource;
             } else {

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Permission;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.Meta;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.PermissionRepository;
 
@@ -19,6 +20,11 @@ public class PermissionService {
         this.permissionRepository = permissionRepository;
     }
 
+    public Permission fetchById(long id) {
+        Optional<Permission> permissionOptional = this.permissionRepository.findById(id);
+        return permissionOptional.orElse(null);
+    }
+
     public boolean isPermissionExist(Permission p) {
         return permissionRepository.existsByModuleAndApiPathAndMethod(
                 p.getModule(),
@@ -26,11 +32,9 @@ public class PermissionService {
                 p.getMethod());
     }
 
-    public Permission fetchById(long id) {
-        Optional<Permission> permissionOptional = this.permissionRepository.findById(id);
-        if (permissionOptional.isPresent())
-            return permissionOptional.get();
-        return null;
+    public boolean isSameName(Permission p) {
+        Permission permissionDB = this.fetchById(p.getId());
+        return permissionDB != null && permissionDB.getName().equals(p.getName());
     }
 
     public Permission create(Permission p) {
@@ -45,45 +49,32 @@ public class PermissionService {
             permissionDB.setMethod(p.getMethod());
             permissionDB.setModule(p.getModule());
 
-            // update
-            permissionDB = this.permissionRepository.save(permissionDB);
-            return permissionDB;
+            return this.permissionRepository.save(permissionDB);
         }
         return null;
     }
 
     public void delete(long id) {
-        // delete permission_role
         Optional<Permission> permissionOptional = this.permissionRepository.findById(id);
-        Permission currentPermission = permissionOptional.get();
-        currentPermission.getRoles().forEach(role -> role.getPermissions().remove(currentPermission));
-
-        // delete permission
-        this.permissionRepository.delete(currentPermission);
+        if (permissionOptional.isPresent()) {
+            Permission currentPermission = permissionOptional.get();
+            currentPermission.getRoles().forEach(role -> role.getPermissions().remove(currentPermission));
+            this.permissionRepository.delete(currentPermission);
+        }
     }
 
     public ResultPaginationDTO getPermissions(Specification<Permission> spec, Pageable pageable) {
         Page<Permission> pPermissions = this.permissionRepository.findAll(spec, pageable);
+
         ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pPermissions.getTotalPages());
-        mt.setTotal(pPermissions.getTotalElements());
+        Meta mt = new com.iuh.edu.fit.BEJewelry.Architecture.domain.response.Meta(
+                pageable.getPageNumber() + 1,
+                pageable.getPageSize(),
+                pPermissions.getTotalPages(),
+                pPermissions.getTotalElements());
 
         rs.setMeta(mt);
         rs.setResult(pPermissions.getContent());
         return rs;
-    }
-
-    public boolean isSameName(Permission p) {
-        Permission permissionDB = this.fetchById(p.getId());
-        if (permissionDB != null) {
-            if (permissionDB.getName().equals(p.getName()))
-                return true;
-        }
-        return false;
     }
 }

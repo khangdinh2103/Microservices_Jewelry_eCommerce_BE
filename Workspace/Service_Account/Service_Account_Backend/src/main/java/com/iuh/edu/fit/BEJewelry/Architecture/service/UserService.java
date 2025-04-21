@@ -12,6 +12,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.Meta;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResCreateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUpdateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUserDTO;
@@ -28,50 +29,10 @@ public class UserService {
         this.roleService = roleService;
     }
 
-    public User handleCreateUser(User user) {
-        // check role
-        if (user.getRole() != null) {
-            Role r = this.roleService.fetchById(user.getRole().getId());
-            user.setRole(r != null ? r : null);
-        }
-
-        return this.userRepository.save(user);
-    }
-
-    public void handleDeleteUser(long id) {
-        this.userRepository.deleteById(id);
-    }
-
+    // Core user operations
     public User fetchUserById(long id) {
         Optional<User> userOptional = this.userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            return userOptional.get();
-        }
-        return null;
-    }
-
-    public List<User> fetchAllUser() {
-        return this.userRepository.findAll();
-    }
-
-    public User handleUpdateUser(User reqUser) {
-        User currentUser = this.fetchUserById(reqUser.getId());
-        if (currentUser != null) {
-            currentUser.setAddress(reqUser.getAddress());
-            currentUser.setAge(reqUser.getAge());
-            currentUser.setGender(reqUser.getGender());
-            currentUser.setName(reqUser.getName());
-
-            // check role
-            if (reqUser.getRole() != null) {
-                Role r = this.roleService.fetchById(reqUser.getRole().getId());
-                currentUser.setRole(r != null ? r : null);
-            }
-
-            // update
-            currentUser = this.userRepository.save(currentUser);
-        }
-        return currentUser;
+        return userOptional.orElse(null);
     }
 
     public User handleGetUserByUserName(String username) {
@@ -82,81 +43,41 @@ public class UserService {
         return this.userRepository.existsByEmail(email);
     }
 
-    public ResCreateUserDTO convertToResCreateUserDTO(User user) {
-        ResCreateUserDTO res = new ResCreateUserDTO();
-        res.setId(user.getId());
-        res.setEmail(user.getEmail());
-        res.setName(user.getName());
-        res.setAge(user.getAge());
-        res.setCreatedAt(user.getCreatedAt());
-        res.setGender(user.getGender());
-        res.setAddress(user.getAddress());
-        return res;
+    public List<User> fetchAllUser() {
+        return this.userRepository.findAll();
     }
 
-    public ResUserDTO convertToResUserDTO(User user) {
-        ResUserDTO res = new ResUserDTO();
-        ResUserDTO.RoleUser roleUser = new ResUserDTO.RoleUser();
-
+    public User handleCreateUser(User user) {
         if (user.getRole() != null) {
-            roleUser.setId(user.getRole().getId());
-            roleUser.setName(user.getRole().getName());
-            res.setRole(roleUser);
+            Role r = this.roleService.fetchById(user.getRole().getId());
+            user.setRole(r);
         }
+        return this.userRepository.save(user);
+    }
 
-        res.setId(user.getId());
-        res.setEmail(user.getEmail());
-        res.setName(user.getName());
-        res.setAge(user.getAge());
-        res.setUpdatedAt(user.getUpdatedAt());
-        res.setCreatedAt(user.getCreatedAt());
-        res.setGender(user.getGender());
-        res.setAddress(user.getAddress());
-        res.setAvatar(user.getAvatar());
-        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
-            String avatarUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/files/")
-                .path(user.getAvatar())
-                .toUriString();
-            res.setAvatarUrl(avatarUrl);
+    public User handleUpdateUser(User reqUser) {
+        User currentUser = this.fetchUserById(reqUser.getId());
+        if (currentUser != null) {
+            currentUser.setAddress(reqUser.getAddress());
+            currentUser.setAge(reqUser.getAge());
+            currentUser.setGender(reqUser.getGender());
+            currentUser.setName(reqUser.getName());
+
+            if (reqUser.getRole() != null) {
+                Role r = this.roleService.fetchById(reqUser.getRole().getId());
+                currentUser.setRole(r);
+            }
+
+            return this.userRepository.save(currentUser);
         }
-        return res;
+        return null;
     }
 
-    public ResUpdateUserDTO convertToResUpdateUserDTO(User user) {
-        ResUpdateUserDTO res = new ResUpdateUserDTO();
-        res.setId(user.getId());
-        res.setName(user.getName());
-        res.setAge(user.getAge());
-        res.setUpdatedAt(user.getUpdatedAt());
-        res.setGender(user.getGender());
-        res.setAddress(user.getAddress());
-        return res;
+    public void handleDeleteUser(long id) {
+        this.userRepository.deleteById(id);
     }
 
-    public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
-        Page<User> pageUser = this.userRepository.findAll(spec, pageable);
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pageUser.getTotalPages());
-        mt.setTotal(pageUser.getTotalElements());
-
-        rs.setMeta(mt);
-
-        // remove sensitive data
-        List<ResUserDTO> listUser = pageUser.getContent()
-                .stream().map(item -> this.convertToResUserDTO(item))
-                .collect(Collectors.toList());
-
-        rs.setResult(listUser);
-
-        return rs;
-    }
-
+    // Token management
     public void updateUserToken(String token, String email) {
         User currentUser = this.handleGetUserByUserName(email);
         if (currentUser != null) {
@@ -169,4 +90,76 @@ public class UserService {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
 
+    // DTO conversion methods
+    public ResCreateUserDTO convertToResCreateUserDTO(User user) {
+        return new ResCreateUserDTO(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getGender(),
+                user.getAge(),
+                user.getAddress(),
+                user.getCreatedAt());
+    }
+
+    public ResUpdateUserDTO convertToResUpdateUserDTO(User user) {
+        return new ResUpdateUserDTO(
+                user.getId(),
+                user.getName(),
+                user.getGender(),
+                user.getAge(),
+                user.getAddress(),
+                user.getUpdatedAt());
+    }
+
+    public ResUserDTO convertToResUserDTO(User user) {
+        ResUserDTO res = new ResUserDTO();
+        res.setId(user.getId());
+        res.setEmail(user.getEmail());
+        res.setName(user.getName());
+        res.setAge(user.getAge());
+        res.setUpdatedAt(user.getUpdatedAt());
+        res.setCreatedAt(user.getCreatedAt());
+        res.setGender(user.getGender());
+        res.setAddress(user.getAddress());
+        res.setAvatar(user.getAvatar());
+
+        if (user.getRole() != null) {
+            ResUserDTO.RoleUser roleUser = new ResUserDTO.RoleUser(
+                    user.getRole().getId(),
+                    user.getRole().getName());
+            res.setRole(roleUser);
+        }
+
+        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+            String avatarUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/api/v1/files/")
+                    .path(user.getAvatar())
+                    .toUriString();
+            res.setAvatarUrl(avatarUrl);
+        }
+
+        return res;
+    }
+
+    public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
+        Page<User> pageUser = this.userRepository.findAll(spec, pageable);
+
+        List<ResUserDTO> listUser = pageUser.getContent()
+                .stream()
+                .map(this::convertToResUserDTO)
+                .collect(Collectors.toList());
+
+        Meta meta = new com.iuh.edu.fit.BEJewelry.Architecture.domain.response.Meta(
+                pageable.getPageNumber() + 1,
+                pageable.getPageSize(),
+                pageUser.getTotalPages(),
+                pageUser.getTotalElements());
+
+        ResultPaginationDTO result = new ResultPaginationDTO();
+        result.setMeta(meta);
+        result.setResult(listUser);
+
+        return result;
+    }
 }

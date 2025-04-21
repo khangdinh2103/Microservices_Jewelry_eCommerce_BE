@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Permission;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.Meta;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.PermissionRepository;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.RoleRepository;
@@ -25,49 +26,50 @@ public class RoleService {
         this.permissionRepository = permissionRepository;
     }
 
+    public Role fetchById(long id) {
+        Optional<Role> roleOptional = this.roleRepository.findById(id);
+        return roleOptional.orElse(null);
+    }
+
     public boolean existByName(String name) {
         return this.roleRepository.existsByName(name);
     }
 
-    public Role create(Role r) {
-        // check permissions
-        if (r.getPermissions() != null) {
-            List<Long> reqPermissions = r.getPermissions()
-                    .stream().map(x -> x.getId())
-                    .collect(Collectors.toList());
-
-            List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
-            r.setPermissions(dbPermissions);
+    private List<Permission> resolvePermissions(List<Permission> permissions) {
+        if (permissions == null) {
+            return null;
         }
 
-        return this.roleRepository.save(r);
+        List<Long> reqPermissions = permissions.stream()
+                .map(Permission::getId)
+                .collect(Collectors.toList());
+
+        return this.permissionRepository.findByIdIn(reqPermissions);
     }
 
-    public Role fetchById(long id) {
-        Optional<Role> roleOptional = this.roleRepository.findById(id);
-        if (roleOptional.isPresent())
-            return roleOptional.get();
-        return null;
+    public Role create(Role r) {
+        if (r.getPermissions() != null) {
+            r.setPermissions(resolvePermissions(r.getPermissions()));
+        }
+        return this.roleRepository.save(r);
     }
 
     public Role update(Role r) {
         Role roleDB = this.fetchById(r.getId());
-        // check permissions
-        if (r.getPermissions() != null) {
-            List<Long> reqPermissions = r.getPermissions()
-                    .stream().map(x -> x.getId())
-                    .collect(Collectors.toList());
+        if (roleDB == null) {
+            return null;
+        }
 
-            List<Permission> dbPermissions = this.permissionRepository.findByIdIn(reqPermissions);
-            r.setPermissions(dbPermissions);
+        if (r.getPermissions() != null) {
+            r.setPermissions(resolvePermissions(r.getPermissions()));
         }
 
         roleDB.setName(r.getName());
         roleDB.setDescription(r.getDescription());
         roleDB.setActive(r.isActive());
         roleDB.setPermissions(r.getPermissions());
-        roleDB = this.roleRepository.save(roleDB);
-        return roleDB;
+
+        return this.roleRepository.save(roleDB);
     }
 
     public void delete(long id) {
@@ -76,14 +78,13 @@ public class RoleService {
 
     public ResultPaginationDTO getRoles(Specification<Role> spec, Pageable pageable) {
         Page<Role> pRole = this.roleRepository.findAll(spec, pageable);
+
         ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
-
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pRole.getTotalPages());
-        mt.setTotal(pRole.getTotalElements());
+        Meta mt = new com.iuh.edu.fit.BEJewelry.Architecture.domain.response.Meta(
+                pageable.getPageNumber() + 1,
+                pageable.getPageSize(),
+                pRole.getTotalPages(),
+                pRole.getTotalElements());
 
         rs.setMeta(mt);
         rs.setResult(pRole.getContent());

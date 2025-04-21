@@ -10,13 +10,15 @@ import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
+    // Email related queries
     User findByEmail(String email);
-
+    
     boolean existsByEmail(String email);
-
-    User findByRefreshTokenAndEmail(String token, String email);
-
-    Optional<User> findByResetToken(String resetToken);
-
+    
     Optional<User> findOptionalByEmail(String email);
+    
+    // Token related queries
+    User findByRefreshTokenAndEmail(String token, String email);
+    
+    Optional<User> findByResetToken(String resetToken);
 }

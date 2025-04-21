@@ -1,5 +1,8 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -12,13 +15,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqChangePasswordDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResCreateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUpdateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
+import com.iuh.edu.fit.BEJewelry.Architecture.service.FileStorageService;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.SecurityUtil;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.annotation.ApiMessage;
@@ -34,9 +42,12 @@ public class UserController {
 
     private final PasswordEncoder passwordEncoder;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    private final FileStorageService fileStorageService;
+
+    public UserController(UserService userService, PasswordEncoder passwordEncoder, FileStorageService fileStorageService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.fileStorageService = fileStorageService;
     }
 
     @PostMapping("/users")
@@ -125,5 +136,31 @@ public class UserController {
         user.setPassword(passwordEncoder.encode(reqChangePasswordDTO.getNewPassword()));
         userService.handleUpdateUser(user);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/profile/avatar")
+    public ResponseEntity<Map<String, String>> updateAvatar(@RequestParam("file") MultipartFile file) {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        User user = userService.handleGetUserByUserName(email);
+        
+        // Store the file
+        String fileName = fileStorageService.storeFile(file);
+        
+        // Update user's avatar path
+        user.setAvatar(fileName);
+        userService.handleUpdateUser(user);
+        
+        // Build response
+        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/files/")
+                .path(fileName)
+                .toUriString();
+
+        Map<String, String> response = new HashMap<>();
+        response.put("avatar", fileName);
+        response.put("avatarUrl", fileDownloadUri);
+        
+        return ResponseEntity.ok(response);
     }
 }

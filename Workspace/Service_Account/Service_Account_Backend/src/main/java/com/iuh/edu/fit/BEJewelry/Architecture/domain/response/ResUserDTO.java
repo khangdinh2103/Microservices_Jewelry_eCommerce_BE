@@ -21,6 +21,8 @@ public class ResUserDTO {
     private int age;
     private Instant updatedAt;
     private Instant createdAt;
+    private String avatar;
+    private String avatarUrl;
 
     private RoleUser role;
 

@@ -52,6 +52,9 @@ public class User {
     private String createdBy;
     private String updatedBy;
 
+    @Column(name = "avatar")
+    private String avatar;
+
     @Column(name = "reset_token")
     private String resetToken;
 

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
@@ -111,6 +112,14 @@ public class UserService {
         res.setCreatedAt(user.getCreatedAt());
         res.setGender(user.getGender());
         res.setAddress(user.getAddress());
+        res.setAvatar(user.getAvatar());
+        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+            String avatarUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/files/")
+                .path(user.getAvatar())
+                .toUriString();
+            res.setAvatarUrl(avatarUrl);
+        }
         return res;
     }
 
@@ -159,4 +168,5 @@ public class UserService {
     public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
+
 }

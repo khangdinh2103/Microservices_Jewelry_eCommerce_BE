@@ -29,11 +29,6 @@ public class Category {
     private String description;
 
     @OneToMany(mappedBy = "category")
-    @JsonIgnoreProperties({"category"})
+    @JsonIgnoreProperties("category")  // Quan trọng: ngăn vòng lặp vô hạn
     private List<Product> products = new ArrayList<>();
-
-    // Phương thức tương thích ngược
-    public List<Product> getProducts() {
-        return products;
-    }
 }

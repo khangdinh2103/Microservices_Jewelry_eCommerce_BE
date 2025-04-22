@@ -11,6 +11,6 @@ public class CollectionDto {
     private Integer id;
     private String name;
     private String description;
-    private List<Integer> collectionImageIds;
+    private List<CollectionImageDto> collectionImages;
     private List<Integer> productIds;
 }

@@ -26,20 +26,10 @@ public class Collection {
     private String description;
 
     @OneToMany(mappedBy = "collection")
-    @JsonIgnoreProperties({"collection"})
+    @JsonIgnoreProperties("collection")  // Quan trọng: ngăn vòng lặp vô hạn
     private List<CollectionImage> collectionImages = new ArrayList<>();
 
     @OneToMany(mappedBy = "collection")
+    @JsonIgnoreProperties("collection")  // Quan trọng: ngăn vòng lặp vô hạn
     private List<Product> products = new ArrayList<>();
-
-    // Phương thức tương thích ngược
-    @Deprecated
-    public List<CollectionImage> getCollectionImages() {
-        return collectionImages;
-    }
-
-    @Deprecated
-    public List<Product> getProducts() {
-        return products;
-    }
 }

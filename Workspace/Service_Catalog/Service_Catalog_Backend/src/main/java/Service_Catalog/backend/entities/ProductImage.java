@@ -6,6 +6,8 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Getter
 @Setter
 @Entity
@@ -19,6 +21,7 @@ public class ProductImage {
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "product_id")
+    @JsonIgnoreProperties("productImages")
     private Product product;
 
     @Column(name = "image_url", nullable = false, length = Integer.MAX_VALUE)

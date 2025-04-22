@@ -59,7 +59,7 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "category_id")
-    @JsonIgnoreProperties({"products"})
+    @JsonIgnoreProperties("products")
     private Category category;
 
     @Column(name = "created_at")
@@ -69,14 +69,15 @@ public class Product {
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "product")
-    @JsonIgnoreProperties({"product"})
+    @JsonIgnoreProperties("product")
     private List<ProductImage> productImages = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "collection_id")
-    @JsonIgnoreProperties({"products", "collectionImages"})
+    @JsonIgnoreProperties({"products"})
     private Collection collection;
+
 
     @Column(name = "size")
     private String size;

@@ -7,7 +7,8 @@ const getCartByUserId = async (req, res) => {
     const { userId } = req.params;
 
     try {
-        const cart = await Cart.findOne({
+        // Tìm hoặc tạo giỏ hàng
+        let cart = await Cart.findOne({
             where: { userID: userId },
             include: [
                 {
@@ -16,7 +17,7 @@ const getCartByUserId = async (req, res) => {
                     include: [
                         {
                             model: Product,
-                            as: 'product', // Đảm bảo đúng alias
+                            as: 'product',
                             attributes: ['productID', 'name', 'price'],
                             include: [
                                 {
@@ -33,24 +34,78 @@ const getCartByUserId = async (req, res) => {
             ]
         });
 
+        // Nếu giỏ hàng không tồn tại, tạo mới
         if (!cart) {
-            return res.status(404).json({ message: 'Cart not found' });
+            cart = await Cart.create({ userID: userId });
+            // Tải lại giỏ hàng để lấy đúng định dạng trả về
+            cart = await Cart.findOne({
+                where: { userID: userId },
+                include: [
+                    {
+                        model: CartItem,
+                        as: 'cartItems',
+                        include: [
+                            {
+                                model: Product,
+                                as: 'product',
+                                attributes: ['productID', 'name', 'price'],
+                                include: [
+                                    {
+                                        model: ProductImage,
+                                        as: 'imageSet',
+                                        attributes: ['imageURL'],
+                                        limit: 1,
+                                        order: [['imageID', 'ASC']]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            });
         }
 
-        const result = cart.cartItems.map(detail => ({
+        // Map dữ liệu trả về
+        const result = cart.cartItems?.map(detail => ({
             cartItemID: detail.cartItemID,
-            productID: detail.product?.productID ?? null, // Đảm bảo có productID
+            productID: detail.product?.productID ?? null,
             productName: detail.product?.name ?? 'N/A',
             quantity: detail.quantity,
             price: detail.price,
             imageURL: detail.product?.imageSet?.length > 0 ? detail.product.imageSet[0].imageURL : null
-        }));
+        })) || [];
 
         res.json({ cartId: cart.cartID, items: result });
 
     } catch (error) {
         console.error('Lỗi server:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// Thêm hàm tạo giỏ hàng mới (nếu cần gọi riêng)
+const createCart = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        
+        // Kiểm tra xem đã có cart chưa
+        const existingCart = await Cart.findOne({ where: { userID: userId } });
+        if (existingCart) {
+            return res.status(200).json({ 
+                message: 'Giỏ hàng đã tồn tại', 
+                cartId: existingCart.cartID 
+            });
+        }
+        
+        // Tạo cart mới
+        const newCart = await Cart.create({ userID: userId });
+        return res.status(201).json({ 
+            message: 'Đã tạo giỏ hàng mới', 
+            cartId: newCart.cartID 
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Lỗi khi tạo giỏ hàng' });
     }
 };
 
@@ -163,4 +218,5 @@ module.exports = {
     addCartItem,
     updateCartItemQuantity,
     deleteCartItem,
+    createCart // Thêm hàm mới vào exports
 }

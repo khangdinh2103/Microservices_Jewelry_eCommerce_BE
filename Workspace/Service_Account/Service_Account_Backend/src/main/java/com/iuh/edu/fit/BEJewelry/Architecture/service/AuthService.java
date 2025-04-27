@@ -31,7 +31,7 @@ public class AuthService {
         user.setResetToken(token);
         userRepository.save(user);
 
-        String resetLink = "http://localhost:4173/reset-password?token=" + token;
+        String resetLink = "http://localhost:3000/reset-password?token=" + token;
         try {
             emailService.sendResetPasswordEmail(user.getEmail(), resetLink);
         } catch (MessagingException e) {

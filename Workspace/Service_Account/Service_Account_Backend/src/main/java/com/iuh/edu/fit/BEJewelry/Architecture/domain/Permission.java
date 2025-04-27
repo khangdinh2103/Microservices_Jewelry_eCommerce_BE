@@ -54,6 +54,15 @@ public class Permission {
         this.module = module;
     }
 
+    // Thêm các phương thức getter để tương thích với code trong DatabaseInitializer
+    public String getGroup() {
+        return this.module;
+    }
+    
+    public String getEndpoint() {
+        return this.apiPath;
+    }
+
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "permissions")
     @JsonIgnore
     private List<Role> roles;

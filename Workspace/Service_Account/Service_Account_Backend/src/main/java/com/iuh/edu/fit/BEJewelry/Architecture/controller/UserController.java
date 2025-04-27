@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqChangePasswordDTO;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqOccasionReminderDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResCreateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUpdateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
+import com.iuh.edu.fit.BEJewelry.Architecture.service.OccasionReminderService;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.SecurityUtil;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.annotation.ApiMessage;
@@ -33,10 +35,13 @@ public class UserController {
     private final UserService userService;
 
     private final PasswordEncoder passwordEncoder;
+    private final OccasionReminderService occasionReminderService;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder, 
+                         OccasionReminderService occasionReminderService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.occasionReminderService = occasionReminderService;
     }
 
     @PostMapping("/users")
@@ -124,6 +129,52 @@ public class UserController {
         }
         user.setPassword(passwordEncoder.encode(reqChangePasswordDTO.getNewPassword()));
         userService.handleUpdateUser(user);
+        return ResponseEntity.ok().build();
+    }
+    
+    // Special Occasion Reminders endpoints
+    
+    @GetMapping("/profile/occasions")
+    @ApiMessage("Get all occasion reminders for current user")
+    public ResponseEntity<?> getUserOccasionReminders(Pageable pageable) {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        return ResponseEntity.ok(occasionReminderService.getUserOccasionReminders(email, pageable));
+    }
+    
+    @GetMapping("/profile/occasions/upcoming")
+    @ApiMessage("Get upcoming occasion reminders for current user")
+    public ResponseEntity<?> getUpcomingOccasions() {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        return ResponseEntity.ok(occasionReminderService.getUpcomingOccasions(email));
+    }
+    
+    @PostMapping("/profile/occasions")
+    @ApiMessage("Create a new occasion reminder")
+    public ResponseEntity<?> createOccasionReminder(@Valid @RequestBody ReqOccasionReminderDTO request) {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(occasionReminderService.createOccasionReminder(email, request));
+    }
+    
+    @PutMapping("/profile/occasions/{id}")
+    @ApiMessage("Update an occasion reminder")
+    public ResponseEntity<?> updateOccasionReminder(
+            @PathVariable("id") Long id, 
+            @Valid @RequestBody ReqOccasionReminderDTO request) throws IdInvalidException {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        return ResponseEntity.ok(occasionReminderService.updateOccasionReminder(email, id, request));
+    }
+    
+    @DeleteMapping("/profile/occasions/{id}")
+    @ApiMessage("Delete an occasion reminder")
+    public ResponseEntity<?> deleteOccasionReminder(@PathVariable("id") Long id) throws IdInvalidException {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        occasionReminderService.deleteOccasionReminder(email, id);
         return ResponseEntity.ok().build();
     }
 }

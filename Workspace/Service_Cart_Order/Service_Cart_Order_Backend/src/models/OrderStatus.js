@@ -1,8 +1,8 @@
 const OrderStatus = {
-    PENDING: "PENDING",
-    SUCCESS: "SUCCESS",
-    FAILED: "FAILED",
-  };
-  
-  module.exports = OrderStatus;
-  
+  PENDING: "PENDING",
+  PROCESSING: "PROCESSING",
+  DELIVERED: "DELIVERED",
+  CANCELLED: "CANCELLED",
+};
+
+module.exports = OrderStatus;

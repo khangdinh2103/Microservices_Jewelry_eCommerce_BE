@@ -24,9 +24,10 @@ const Order = sequelize.define(
       allowNull: false,
     },
     status: {
-        type: DataTypes.ENUM(...Object.values(OrderStatus)), 
-        defaultValue: OrderStatus.PENDING,
-      },
+      type: DataTypes.ENUM('PENDING', 'PROCESSING', 'DELIVERED', 'CANCELLED'),
+      defaultValue: 'PENDING',
+      allowNull: false
+  },
 
     paymentStatus: {
         type: DataTypes.ENUM('PENDING', 'PAID', 'CANCELED'),

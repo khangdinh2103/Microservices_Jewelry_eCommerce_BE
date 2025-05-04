@@ -63,20 +63,80 @@ const getOrderById = async (req, res) => {
 const updateOrder = async (req, res) => {
     try {
         const { orderID } = req.params;
-        const { address, status } = req.body;
+        const { address, status, paymentStatus } = req.body;
 
         const order = await Order.findByPk(orderID);
         if (!order) {
             return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
         }
 
-        await order.update({ address, status });
-        return res.status(200).json({ message: "Cập nhật đơn hàng thành công", order });
+        // Create an update object with only the fields that need to be updated
+        const updateData = {};
+        
+        // Add address to update data if provided
+        if (address) {
+            updateData.address = address;
+        }
+        
+        // Add paymentStatus to update data if provided and valid
+        if (paymentStatus !== undefined) {
+            if (!["PENDING", "PAID", "CANCELED"].includes(paymentStatus)) {
+                return res.status(400).json({ message: 'Trạng thái thanh toán không hợp lệ' });
+            }
+            updateData.paymentStatus = paymentStatus;
+            console.log("Payment status to update:", paymentStatus);
+        }
+        
+        // Update non-status fields first if there are any
+        if (Object.keys(updateData).length > 0) {
+            await Order.update(updateData, {
+                where: { orderID: orderID }
+            });
+        }
+        
+        // Handle status update separately
+        if (status !== undefined) {
+            if (!["PENDING", "PROCESSING", "DELIVERED", "CANCELLED"].includes(status)) {
+                return res.status(400).json({ message: 'Trạng thái đơn hàng không hợp lệ' });
+            }
+            
+            console.log("Status to update:", status);
+            
+            // Try a different approach - update the instance directly and save
+            order.status = status;
+            await order.save({ fields: ['status'] });
+            
+            // Verify the status was updated
+            const checkOrder = await Order.findByPk(orderID);
+            console.log("Status after direct save:", checkOrder.status);
+            
+            // If status is still empty, try raw SQL with quotes
+            if (!checkOrder.status) {
+                console.log("Status is empty after save, trying raw SQL with quotes");
+                await Order.sequelize.query(
+                    `UPDATE Orders SET status = "${status}" WHERE orderID = ?`,
+                    {
+                        replacements: [orderID],
+                        type: Order.sequelize.QueryTypes.UPDATE
+                    }
+                );
+            }
+        }
+        
+        // Fetch the updated order to return in response
+        const updatedOrder = await Order.findByPk(orderID);
+        console.log("Final updated order:", JSON.stringify(updatedOrder, null, 2));
+        
+        return res.status(200).json({ 
+            message: 'Cập nhật đơn hàng thành công',
+            order: updatedOrder
+        });
+        
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: "Lỗi khi cập nhật đơn hàng" });
+        console.error('Error updating order:', error);
+        return res.status(500).json({ message: 'Lỗi server khi cập nhật đơn hàng' });
     }
-};
+}
 
 const deleteOrder = async (req, res) => {
     try {
@@ -156,7 +216,36 @@ const getUserById = async (userID) => {
         return { error: 'Lỗi hệ thống' };
     }
 };
-
+const getAllOrdersForAdmin = async (req, res) => {
+    try {
+      const orders = await Order.findAll({
+        include: [
+          {
+            model: OrderDetail,
+            as: 'orderDetails',
+            include: [
+              {
+                model: Product,
+                as: 'product',
+                include: [
+                  {
+                    model: ProductImage,
+                    as: 'imageSet'
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        order: [['createAt', 'DESC']]
+      });
+      
+      return res.status(200).json(orders);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Error fetching orders" });
+    }
+  };
 
 module.exports = {
     createOrder,
@@ -166,6 +255,8 @@ module.exports = {
     deleteOrder,
     getOrderDetailById,
     getOrderByIdUser,
-    getUserById
+    getUserById,
+    getAllOrdersForAdmin,
     
 };
+

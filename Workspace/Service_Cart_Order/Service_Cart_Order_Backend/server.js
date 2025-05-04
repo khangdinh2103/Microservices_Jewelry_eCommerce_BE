@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.json());
 app.use('/api', cartRoutes);
-app.use('/api', orderRoutesAdmin);
+app.use('/api/admin', orderRoutesAdmin);
 app.use('/api', orderRoutesClient);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/location', locationRoutes);

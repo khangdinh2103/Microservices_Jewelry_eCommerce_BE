@@ -90,8 +90,20 @@ public class ProductService {
                 productId,
                 product.getCollectionId() != null ? product.getCollectionId().getId() : null,
                 product.getBrand(),
-                product.getCategoryId() != null ? product.getCategoryId().getId() : null
-        );
+                product.getCategoryId() != null ? product.getCategoryId().getId() : null);
+    }
+
+    // In ProductService implementation
+    public List<Product> getProductsBelowPrice(Double maxPrice) {
+        return productRepository.findByPriceLessThanEqual(maxPrice);
+    }
+
+    public List<Product> getProductsBetweenPrices(Double minPrice, Double maxPrice) {
+        return productRepository.findByPriceBetween(minPrice, maxPrice);
+    }
+
+    public List<Product> getProductsAbovePrice(Double minPrice) {
+        return productRepository.findByPriceGreaterThanEqual(minPrice);
     }
 
 }

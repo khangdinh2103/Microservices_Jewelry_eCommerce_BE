@@ -6,5 +6,6 @@ setup(
         "flask-cors",
         "google",
         "google-generativeai",
+        "requests",
     ]
 )

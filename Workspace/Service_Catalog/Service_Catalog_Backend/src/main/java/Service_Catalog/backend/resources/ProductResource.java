@@ -103,6 +103,30 @@ public class ProductResource {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/price/below/{maxPrice}")
+    public List<ProductDto> showProductsBelowPrice(@PathVariable Double maxPrice) {
+        List<Product> products = productService.getProductsBelowPrice(maxPrice);
+        return products.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/price/between/{minPrice}/{maxPrice}")
+    public List<ProductDto> showProductsBetweenPrices(@PathVariable Double minPrice, @PathVariable Double maxPrice) {
+        List<Product> products = productService.getProductsBetweenPrices(minPrice, maxPrice);
+        return products.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/price/above/{minPrice}")
+    public List<ProductDto> showProductsAbovePrice(@PathVariable Double minPrice) {
+        List<Product> products = productService.getProductsAbovePrice(minPrice);
+        return products.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
     // Các phương thức CRUD khác
 
     // Conversion methods

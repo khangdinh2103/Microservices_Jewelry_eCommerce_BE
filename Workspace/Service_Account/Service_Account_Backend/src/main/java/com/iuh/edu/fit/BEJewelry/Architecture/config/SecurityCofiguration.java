@@ -64,7 +64,8 @@ public class SecurityCofiguration {
                 "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/register",
                 "/storage/**", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password",
                 "/api/v1/auth/verify-email","/api/v1/auth/google", "/oauth2/**", "/login/oauth2/code/**", 
-                "/api/v1/auth/test-oauth", "/api/v1/auth/google-login-link", "/api/v1/auth/google-redirect","/login/**"
+                "/api/v1/auth/test-oauth", "/api/v1/auth/google-login-link", "/api/v1/auth/google-redirect","/login/**",
+                "/api/v1/profile/occasions/**" // Thêm tạm thời để debug
         };
         http
                 .securityMatcher("/api/**") // Chỉ áp dụng cho API

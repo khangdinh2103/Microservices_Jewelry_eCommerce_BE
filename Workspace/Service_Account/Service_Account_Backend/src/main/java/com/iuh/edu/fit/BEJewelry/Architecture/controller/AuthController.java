@@ -427,6 +427,12 @@ public class AuthController {
                     "Email " + postManUser.getEmail() + "đã tồn tại, vui lòng sử dụng email khác.");
         }
 
+        Role userRole = this.userService.getRoleByName("NORMAL_USER");
+        if (userRole == null) {
+            throw new IdInvalidException("Không tìm thấy vai trò NORMAL_USER");
+        }
+        postManUser.setRole(userRole);
+        
         String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
         postManUser.setPassword(hashPassword);
         User newUser = this.userService.handleCreateUser(postManUser);

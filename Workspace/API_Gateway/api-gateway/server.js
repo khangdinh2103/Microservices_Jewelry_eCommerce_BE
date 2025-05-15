@@ -89,7 +89,7 @@ app.use(
 app.use(
     '/api/v1/catalog',
     createProxyMiddleware({
-        target: 'http://localhost:8005',
+        target: 'http://localhost:8005/api',
         changeOrigin: true,
         pathRewrite: {
             '^/api/v1/catalog': '', // Remove the /api/v1/catalog prefix when forwarding

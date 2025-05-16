@@ -1,9 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const ProductImage = require('./ProductImage'); // Import model ProductImage
 
 const Product = sequelize.define('Product', {
-    productID: {
+    id: { // Đổi từ productID thành id để đồng bộ
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -12,18 +11,26 @@ const Product = sequelize.define('Product', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    description: {
+    code: { // Thêm code để đồng bộ với Catalog Service
         type: DataTypes.STRING,
         allowNull: true,
     },
-    stock: {
+    description: {
+        type: DataTypes.TEXT, // Đổi từ STRING sang TEXT
+        allowNull: true,
+    },
+    quantity: { // Đổi từ stock thành quantity để đồng bộ
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
     },
     price: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(15, 2), // Đổi từ DOUBLE sang DECIMAL
         allowNull: false,
+    },
+    status: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     gender: {
         type: DataTypes.INTEGER,
@@ -45,26 +52,31 @@ const Product = sequelize.define('Product', {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    category: {
+    size: { // Thêm size để đồng bộ
         type: DataTypes.STRING,
         allowNull: true,
     },
-    createdAt: {
+    category_id: { // Đổi từ category thành category_id
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    collection_id: { // Thêm collection_id để đồng bộ
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    created_at: {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW,
     },
-    updatedAt: {
+    updated_at: {
         type: DataTypes.DATE,
         allowNull: true,
     }
 }, {
     tableName: 'products',
     timestamps: true,
+    underscored: true,
 });
-
-// Thiết lập quan hệ 1-N giữa Product và ProductImage
-// Product.hasMany(ProductImage, { foreignKey: 'productID', as: 'imageSet' });
-// ProductImage.belongsTo(Product, { foreignKey: 'productID' });
 
 module.exports = Product;

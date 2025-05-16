@@ -5,22 +5,25 @@ const UserRoleEnum = ['ADMIN', 'USER', 'MODERATOR'];
 const UserStateEnum = ['ACTIVE', 'INACTIVE', 'BANNED'];
 
 const User = sequelize.define('User', {
-    userID: { 
-        type: DataTypes.INTEGER,
+    id: {
+        type: DataTypes.BIGINT,
         autoIncrement: true,
         primaryKey: true,
     },
-    username: {
+    email: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
         validate: {
             notEmpty: {
-                msg: 'Tên đăng nhập không được để trống',
+                msg: 'Email không được để trống',
+            },
+            isEmail: {
+                msg: 'Email không hợp lệ',
             },
         },
     },
-    passwordHash: { 
+    password: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
@@ -33,40 +36,50 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true, // Đảm bảo email không trùng lặp
-        validate: {
-            notEmpty: {
-                msg: 'Email không được để trống',
-            },
-            isEmail: {
-                msg: 'Email không hợp lệ',
-            },
-        },
+    age: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
     },
-    profileImageURL: { // Thêm thuộc tính ảnh đại diện (URL)
+    gender: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    addresses: { // Lưu danh sách địa chỉ dưới dạng JSON
-        type: DataTypes.JSON,
+    address: {
+        type: DataTypes.STRING,
         allowNull: true,
     },
-    createdAt: {
+    avatar: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    role_id: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
+    },
+    refresh_token: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    reset_token: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    created_at: {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW,
     },
-    updatedAt: {
+    updated_at: {
         type: DataTypes.DATE,
+        allowNull: true, // Chỉnh sửa từ false thành true
+    },
+    created_by: {
+        type: DataTypes.STRING,
         allowNull: true,
     },
-    role: {
-        type: DataTypes.ENUM(...UserRoleEnum),
-        allowNull: false,
-        defaultValue: 'USER',
+    updated_by: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     state: {
         type: DataTypes.ENUM(...UserStateEnum),
@@ -75,7 +88,8 @@ const User = sequelize.define('User', {
     },
 }, {
     tableName: 'users',
-    timestamps: false, // Đã có createdAt và updatedAt tự quản lý
+    timestamps: true,
+    underscored: true,
 });
 
 module.exports = User;

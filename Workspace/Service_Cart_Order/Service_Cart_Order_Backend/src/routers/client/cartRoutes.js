@@ -9,9 +9,9 @@ const {
 } = require('../../controllers/cartController');
 
 router.get('/cart/:userId', getCartByUserId);
-router.post('/cart', createCart); // Thêm route tạo giỏ hàng mới
+router.post('/cart', createCart); 
 router.post('/cart-items', addCartItem);
-router.put('/cart-items/:cartItemID', updateCartItemQuantity);
-router.delete('/cart-items/:cartItemID', deleteCartItem);
+router.put('/cart-items/:cartItemId', updateCartItemQuantity); // Đổi từ cartItemID
+router.delete('/cart-items/:cartItemId', deleteCartItem); // Đổi từ cartItemID
 
 module.exports = router;

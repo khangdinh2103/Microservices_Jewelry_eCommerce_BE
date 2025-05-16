@@ -103,6 +103,24 @@ app.use(
     })
 );
 
+// Proxy middleware for Service Cart Order
+app.use(
+    '/api/v1/cart-order',
+    createProxyMiddleware({
+        target: 'http://localhost:8006/api',
+        changeOrigin: true,
+        pathRewrite: {
+            '^/api/v1/cart-order': '', // Remove the /api/v1/cart-order prefix when forwarding
+        },
+        onProxyReq: (proxyReq, req, res) => {
+            logger.debug(`Proxying request to Service Cart Order: ${req.method} ${req.url}`);
+        },
+        onProxyRes: (proxyRes, req, res) => {
+            logger.debug(`Received response from Service Cart Order: ${proxyRes.statusCode}`);
+        },
+    })
+);
+
 // Handle 404 routes
 app.use((req, res) => {
     logger.warn(`Route not found: ${req.method} ${req.originalUrl}`);

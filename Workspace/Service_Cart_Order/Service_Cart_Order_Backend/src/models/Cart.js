@@ -1,32 +1,29 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const User = require('./User');
 
 const Cart = sequelize.define('Cart', {
-    cartID: {
+    id: { // Đổi từ cartID thành id
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    userID: {
-        type: DataTypes.INTEGER,
+    user_id: { // Đổi từ userID thành user_id
+        type: DataTypes.BIGINT, // Đổi sang BIGINT để phù hợp với id user
         allowNull: false,
-        // Bỏ phần reference để không kiểm tra khóa ngoại
     },
-    createdAt: {
+    created_at: { // Đổi từ createdAt thành created_at
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW,
     },
+    updated_at: { // Thêm updated_at
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
 }, {
     tableName: 'carts',
-    timestamps: false,
+    timestamps: true,
+    underscored: true,
 });
-
-// Mối quan hệ vẫn được định nghĩa ở index.js nhưng không áp dụng ràng buộc
-
-// // Thiết lập quan hệ với User
-// Cart.belongsTo(User, { foreignKey: 'userID' });
-// User.hasOne(Cart, { foreignKey: 'userID' });
 
 module.exports = Cart;

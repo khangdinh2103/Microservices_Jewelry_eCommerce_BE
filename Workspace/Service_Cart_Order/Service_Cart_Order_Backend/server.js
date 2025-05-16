@@ -1,5 +1,5 @@
 const express = require('express');
-const sequelize = require('./src/config/syncDatabase'); 
+const syncDatabase = require('./src/config/syncDatabase');
 const cartRoutes = require('./src/routers/client/cartRoutes'); 
 const orderRoutesAdmin = require('./src/routers/admin/orderRoutesAdmin');
 const orderRoutesClient = require('./src/routers/client/orderRoutersClient');
@@ -20,12 +20,12 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/location', locationRoutes);
 
 // Chỉ gọi `sequelize.sync()` tại đây
-sequelize.sync({ force: false }) 
+syncDatabase()
     .then(() => {
         console.log('Database synchronized...');
         
-        app.listen(8106, () => {
-            console.log('Server running at http://localhost:8106');
+        app.listen(8006, () => {
+            console.log('Server running at http://localhost:8006');
         });
     })
     .catch((error) => {

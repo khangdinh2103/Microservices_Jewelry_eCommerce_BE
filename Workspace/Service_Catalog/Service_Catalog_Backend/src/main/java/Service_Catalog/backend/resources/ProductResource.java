@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,10 @@ import Service_Catalog.backend.services.CategoryService;
 import Service_Catalog.backend.services.CollectionService;
 import Service_Catalog.backend.services.ProductImageService;
 import Service_Catalog.backend.services.ProductService;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 
 @RestController
 @RequestMapping("/api/products")
@@ -125,6 +130,40 @@ public class ProductResource {
         return products.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/category/{categoryId}/random-image")
+    public ResponseEntity<?> getRandomProductImageByCategoryId(@PathVariable Integer categoryId) {
+        // Lấy tất cả sản phẩm thuộc danh mục
+        List<Product> products = productService.getAllByCategoryId(categoryId);
+        
+        if (products == null || products.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        // Chọn sản phẩm ngẫu nhiên
+        Random random = new Random();
+        Product randomProduct = products.get(random.nextInt(products.size()));
+        
+        // Lấy hình ảnh của sản phẩm (ưu tiên ảnh chính - isPrimary)
+        if (randomProduct.getProductImages() != null && !randomProduct.getProductImages().isEmpty()) {
+            // Tìm ảnh là primary (nếu có)
+            Optional<ProductImage> primaryImage = randomProduct.getProductImages().stream()
+                    .filter(ProductImage::getIsPrimary)
+                    .findFirst();
+            
+            // Nếu có ảnh chính, trả về URL của ảnh đó
+            if (primaryImage.isPresent()) {
+                return ResponseEntity.ok().body(Map.of("imageUrl", primaryImage.get().getImageUrl()));
+            }
+            
+            // Nếu không có ảnh chính, lấy ảnh đầu tiên
+            ProductImage firstImage = randomProduct.getProductImages().get(0);
+            return ResponseEntity.ok().body(Map.of("imageUrl", firstImage.getImageUrl()));
+        }
+        
+        // Nếu không có ảnh nào, trả về 404
+        return ResponseEntity.notFound().build();
     }
 
     // Các phương thức CRUD khác

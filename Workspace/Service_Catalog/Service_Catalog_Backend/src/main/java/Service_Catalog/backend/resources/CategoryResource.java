@@ -25,6 +25,7 @@ public class CategoryResource {
     public List<CategoryDto> showCategoryList() {
         List<Category> categories = categoryService.getAllCategories();
         return categories.stream()
+                .filter(category -> category.getProducts() != null && !category.getProducts().isEmpty())
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }

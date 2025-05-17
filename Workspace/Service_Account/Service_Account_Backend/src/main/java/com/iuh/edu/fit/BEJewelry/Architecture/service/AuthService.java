@@ -3,11 +3,12 @@ package com.iuh.edu.fit.BEJewelry.Architecture.service;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.api.client.util.Value;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.UserRepository;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.error.PermissionException;

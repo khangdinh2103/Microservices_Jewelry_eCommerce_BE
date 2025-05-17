@@ -54,7 +54,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
 
-    @Value("${huy.jwt.refresh-token-validity-in-seconds}")
+    @Value("${jec.jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenExpiration;
 
     @Value("${app.frontend.url}")
@@ -69,36 +69,36 @@ public class AuthController {
         this.authService = authService;
     }
 
-    
     @GetMapping("/auth/google")
     @ApiMessage("Handle Google Login")
-    public ResponseEntity<?> handleGoogleLogin(@AuthenticationPrincipal OAuth2User principal, HttpServletRequest request) {
+    public ResponseEntity<?> handleGoogleLogin(@AuthenticationPrincipal OAuth2User principal,
+            HttpServletRequest request) {
         // Add debug logging
         System.out.println("Google login endpoint called");
-        
+
         if (principal == null) {
             System.out.println("OAuth2User principal is null");
             ResLoginDTO response = new ResLoginDTO();
             response.setError("Vui lòng đăng nhập với Google");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
-        
+
         // Rest of the method remains the same
         System.out.println("Principal: Not null");
         System.out.println("Principal attributes: " + principal.getAttributes());
-        
+
         String email = principal.getAttribute("email");
         if (email == null) {
             System.out.println("Email attribute is missing from OAuth2User");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ResLoginDTO("Không thể lấy email từ tài khoản Google"));
+                    .body(new ResLoginDTO("Không thể lấy email từ tài khoản Google"));
         }
-        
+
         System.out.println("Email from Google: " + email);
-        
+
         // Find user in database
         User currentUserDB = this.userService.handleGetUserByUserName(email);
-        
+
         // If user doesn't exist, create a new one
         if (currentUserDB == null) {
             try {
@@ -108,29 +108,28 @@ public class AuthController {
                 // Generate a random password since we're using OAuth
                 String randomPassword = this.securityUtil.generateRandomPassword();
                 newUser.setPassword(this.passwordEncoder.encode(randomPassword));
-                
+
                 // You need to get the Role object from your service or repository
                 Role userRole = this.userService.getRoleByName("NORMAL_USER");
                 if (userRole == null) {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new ResLoginDTO("Không tìm thấy vai trò NORMAL_USER"));
+                            .body(new ResLoginDTO("Không tìm thấy vai trò NORMAL_USER"));
                 }
                 newUser.setRole(userRole);
-                
+
                 currentUserDB = this.userService.handleCreateUser(newUser);
-                
+
                 if (currentUserDB == null) {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new ResLoginDTO("Không thể tạo người dùng mới"));
+                            .body(new ResLoginDTO("Không thể tạo người dùng mới"));
                 }
             } catch (Exception e) {
                 System.out.println("Error creating new user: " + e.getMessage());
                 e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResLoginDTO("Lỗi khi tạo người dùng mới: " + e.getMessage()));
+                        .body(new ResLoginDTO("Lỗi khi tạo người dùng mới: " + e.getMessage()));
             }
         }
-        
 
         // Create response
         ResLoginDTO res = new ResLoginDTO();
@@ -140,17 +139,17 @@ public class AuthController {
                 currentUserDB.getName(),
                 currentUserDB.getRole());
         res.setUser(userLogin);
-        
+
         // Create access token
         String access_token = this.securityUtil.createAccessToken(email, res);
         res.setAccessToken(access_token);
-        
+
         // Create refresh token
         String refreshToken = this.securityUtil.createRefreshToken(email, res);
-        
+
         // Update token for user
         this.userService.updateUserToken(refreshToken, email);
-        
+
         // Set cookie
         ResponseCookie resCookies = ResponseCookie
                 .from("refresh_token", refreshToken)
@@ -159,13 +158,13 @@ public class AuthController {
                 .path("/")
                 .maxAge(refreshTokenExpiration)
                 .build();
-        
+
         System.out.println("Google authentication successful for: " + email);
-        
+
         // Check if this is an AJAX request or direct browser navigation
         String acceptHeader = request.getHeader("Accept");
         boolean isAjaxRequest = acceptHeader != null && acceptHeader.contains("application/json");
-        
+
         if (isAjaxRequest) {
             // Return JSON response for AJAX requests
             return ResponseEntity.ok()
@@ -174,21 +173,22 @@ public class AuthController {
         } else {
             // Redirect to frontend application for browser navigation
             HttpHeaders headers = new HttpHeaders();
-            
+
             try {
-                // Create a URL with user information and URL encode the name to handle special characters
-                String redirectUrl = frontendUrl + 
-                                     // Add a specific path for handling login success
-                                   "?token=" + access_token + 
-                                   "&userId=" + currentUserDB.getId() +
-                                   "&email=" + java.net.URLEncoder.encode(currentUserDB.getEmail(), "UTF-8") + 
-                                   "&name=" + java.net.URLEncoder.encode(currentUserDB.getName(), "UTF-8");
-                
+                // Create a URL with user information and URL encode the name to handle special
+                // characters
+                String redirectUrl = frontendUrl +
+                // Add a specific path for handling login success
+                        "?token=" + access_token +
+                        "&userId=" + currentUserDB.getId() +
+                        "&email=" + java.net.URLEncoder.encode(currentUserDB.getEmail(), "UTF-8") +
+                        "&name=" + java.net.URLEncoder.encode(currentUserDB.getName(), "UTF-8");
+
                 // Add role if available
                 if (currentUserDB.getRole() != null) {
                     redirectUrl += "&role=" + currentUserDB.getRole().getName();
                 }
-                
+
                 System.out.println("Redirecting to: " + redirectUrl);
                 headers.add("Location", redirectUrl);
             } catch (java.io.UnsupportedEncodingException e) {
@@ -196,7 +196,7 @@ public class AuthController {
                 // Fallback to a simpler URL if encoding fails
                 headers.add("Location", frontendUrl + "/login/success?token=" + access_token);
             }
-            
+
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header(HttpHeaders.SET_COOKIE, resCookies.toString())
                     .headers(headers)
@@ -207,14 +207,14 @@ public class AuthController {
     @GetMapping("/auth/debug-oauth")
     public ResponseEntity<Map<String, Object>> debugOAuth(HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
-        
+
         // Get session information
         HttpSession session = request.getSession(false);
         if (session != null) {
             response.put("sessionId", session.getId());
             response.put("sessionCreationTime", new Date(session.getCreationTime()));
             response.put("sessionLastAccessedTime", new Date(session.getLastAccessedTime()));
-            
+
             // Get all session attribute names
             Enumeration<String> attributeNames = session.getAttributeNames();
             Map<String, Object> sessionAttributes = new HashMap<>();
@@ -231,7 +231,7 @@ public class AuthController {
         } else {
             response.put("session", "No active session");
         }
-        
+
         // Get cookies
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -243,7 +243,7 @@ public class AuthController {
         } else {
             response.put("cookies", "No cookies");
         }
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -251,34 +251,27 @@ public class AuthController {
     @ApiMessage("Test OAuth Authentication")
     public ResponseEntity<Map<String, Object>> testOAuth(@AuthenticationPrincipal OAuth2User principal) {
         Map<String, Object> response = new HashMap<>();
-        
+
         if (principal == null) {
             response.put("authenticated", false);
             response.put("message", "Not authenticated with OAuth2");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
-        
+
         response.put("authenticated", true);
         response.put("name", principal.getAttribute("name"));
         response.put("email", principal.getAttribute("email"));
         response.put("attributes", principal.getAttributes());
-        
+
         return ResponseEntity.ok(response);
     }
 
-    
     @PostMapping("/auth/login")
     public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDTO) {
-
-        // Nạp input gồm username/password vào Security
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 loginDTO.getUsername(), loginDTO.getPassword());
 
-        // xác thực người dùng => cần viết hàm loadUserByUsername(khi sai sẽ handle
-        // exception BadCreadential bên globalException)
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-
-        // nạp thông tin (nếu xử lý thành công) vào SecurityContext
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         ResLoginDTO res = new ResLoginDTO();
@@ -292,19 +285,12 @@ public class AuthController {
             res.setUser(userLogin);
         }
 
-        // Create a token
         String access_token = this.securityUtil.createAccessToken(authentication.getName(), res);
-
         res.setAccessToken(access_token);
 
-        // Create a refresh token
         String refreshToken = this.securityUtil.createRefreshToken(loginDTO.getUsername(), res);
-
-        // update user
         this.userService.updateUserToken(refreshToken, loginDTO.getUsername());
 
-        // set refresh_token to cookies
-        // set cookies
         ResponseCookie resCookies = ResponseCookie
                 .from("refresh_token", refreshToken)
                 .httpOnly(true)
@@ -316,7 +302,6 @@ public class AuthController {
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, resCookies.toString()).body(res);
     }
 
-    // hàm trả về user khi đã login thành công
     @GetMapping("/auth/account")
     @ApiMessage("fetch account")
     public ResponseEntity<ResLoginDTO.UserGetAccount> getAccount() {
@@ -346,17 +331,15 @@ public class AuthController {
         if (refresh_token.equals("abc")) {
             throw new IdInvalidException("Bạn không có refresh token ở cookie");
         }
-        // check valid
+
         Jwt decodedToken = this.securityUtil.checkValidRefreshToken(refresh_token);
         String email = decodedToken.getSubject();
 
-        // check user by token + email
         User currentUser = this.userService.getUserByRefreshTokenAndEmail(refresh_token, email);
         if (currentUser == null) {
             throw new IdInvalidException("Refresh Token không hợp lệ");
         }
 
-        // issue new token/set refresh token as cookies
         ResLoginDTO res = new ResLoginDTO();
         User currentUserDB = this.userService.handleGetUserByUserName(email);
         if (currentUserDB != null) {
@@ -368,17 +351,12 @@ public class AuthController {
             res.setUser(userLogin);
         }
 
-        // create access token
         String access_token = this.securityUtil.createAccessToken(email, res);
         res.setAccessToken(access_token);
 
-        // create refresh token
         String new_refresh_token = this.securityUtil.createRefreshToken(email, res);
-
-        // update user
         this.userService.updateUserToken(new_refresh_token, email);
 
-        // set cookies
         ResponseCookie resCookies = ResponseCookie
                 .from("refresh_token", new_refresh_token)
                 .httpOnly(true)
@@ -397,14 +375,12 @@ public class AuthController {
     public ResponseEntity<Void> logout() throws IdInvalidException {
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
 
-        if (email.equals("")) {
+        if (email.isEmpty()) {
             throw new IdInvalidException("Access Token không hợp lệ");
         }
 
-        // update refresh token = null
         this.userService.updateUserToken(null, email);
 
-        // remove refresh token cookie
         ResponseCookie deleteSpringCookie = ResponseCookie
                 .from("refresh_token", null)
                 .httpOnly(true)
@@ -424,7 +400,7 @@ public class AuthController {
         boolean isEmailExist = this.userService.isEmailExist(postManUser.getEmail());
         if (isEmailExist) {
             throw new IdInvalidException(
-                    "Email " + postManUser.getEmail() + "đã tồn tại, vui lòng sử dụng email khác.");
+                    "Email " + postManUser.getEmail() + " đã tồn tại, vui lòng sử dụng email khác.");
         }
 
         Role userRole = this.userService.getRoleByName("NORMAL_USER");
@@ -432,7 +408,7 @@ public class AuthController {
             throw new IdInvalidException("Không tìm thấy vai trò NORMAL_USER");
         }
         postManUser.setRole(userRole);
-        
+
         String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
         postManUser.setPassword(hashPassword);
         User newUser = this.userService.handleCreateUser(postManUser);
@@ -440,7 +416,8 @@ public class AuthController {
     }
 
     @PostMapping("/auth/forgot-password")
-    public ResponseEntity<RestResponse<String>> forgotPassword(@Valid @RequestBody ReqForgotPasswordDTO request) {
+    public ResponseEntity<RestResponse<String>> forgotPassword(@Valid @RequestBody ReqForgotPasswordDTO request)
+            throws PermissionException {
         String result = authService.forgotPassword(request.getEmail());
         RestResponse<String> response = new RestResponse<>(200, null, "Mã xác nhận đã gửi thành công", result);
         return ResponseEntity.ok(response);
@@ -471,17 +448,18 @@ public class AuthController {
         System.out.println("Redirecting to Google login...");
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
+
     @GetMapping("/auth/oauth2-config")
     @ApiMessage("Check OAuth2 Configuration")
     public ResponseEntity<Map<String, Object>> checkOAuth2Config() {
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             // Add basic info about the application
             response.put("status", "OK");
             response.put("message", "OAuth2 configuration check");
             response.put("timestamp", new java.util.Date().toString());
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("status", "ERROR");

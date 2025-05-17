@@ -1,16 +1,14 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
-const Cart = require('./Cart');
-const Product = require('./Product');
 
 const CartItem = sequelize.define('CartItem', {
-    cartItemID: { // Đổi id thành cartItemID để khớp với sơ đồ
+    id: { // Đổi từ cartItemID thành id
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
     price: {
-        type: DataTypes.DOUBLE,
+        type: DataTypes.DECIMAL(15, 2), // Đổi từ DOUBLE sang DECIMAL
         allowNull: false,
     },
     quantity: {
@@ -18,34 +16,36 @@ const CartItem = sequelize.define('CartItem', {
         allowNull: false,
         defaultValue: 1,
     },
-    cartID: { // Đổi cart_id thành cartID
+    cart_id: { // Đổi từ cartID thành cart_id
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Cart,
-            key: 'cartID',
-        },
-        onDelete: 'CASCADE', // Xóa cart sẽ xóa luôn các cart items
-    },
-    productID: { // Đổi product_id thành productID
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: Product,
-            key: 'productID',
+            model: 'carts',
+            key: 'id',
         },
         onDelete: 'CASCADE',
     },
+    product_id: { // Đổi từ productID thành product_id
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'products',
+            key: 'id',
+        },
+        onDelete: 'CASCADE',
+    },
+    created_at: { // Thêm created_at
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+    },
+    updated_at: { // Thêm updated_at
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
 }, {
-    tableName: 'cart_items', 
-    timestamps: false,
+    tableName: 'cart_items',
+    timestamps: true,
+    underscored: true,
 });
-
-// Thiết lập quan hệ với alias nhất quán
-// Cart.hasMany(CartItem, { foreignKey: 'cartID', as: 'cartItems' });
-// CartItem.belongsTo(Cart, { foreignKey: 'cartID', as: 'cart' });
-
-// Product.hasMany(CartItem, { foreignKey: 'productID', as: 'productItems' });
-// CartItem.belongsTo(Product, { foreignKey: 'productID', as: 'product' });
 
 module.exports = CartItem;

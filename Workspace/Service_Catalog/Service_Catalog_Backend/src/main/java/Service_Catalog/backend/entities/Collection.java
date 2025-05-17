@@ -11,12 +11,12 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "collection")
+@Table(name = "collections")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Collection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "collectionid", nullable = false)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @Column(name = "name", nullable = false)
@@ -25,11 +25,11 @@ public class Collection {
     @Column(name = "description", length = Integer.MAX_VALUE)
     private String description;
 
-    @OneToMany(mappedBy = "collectionId")
-    @JsonIgnoreProperties({"collectionId"})
-    private List<Collectionimage> collectionImages = new ArrayList<>();
+    @OneToMany(mappedBy = "collection")
+    @JsonIgnoreProperties("collection")  // Quan trọng: ngăn vòng lặp vô hạn
+    private List<CollectionImage> collectionImages = new ArrayList<>();
 
-    @OneToMany(mappedBy = "collectionId")
+    @OneToMany(mappedBy = "collection")
+    @JsonIgnoreProperties("collection")  // Quan trọng: ngăn vòng lặp vô hạn
     private List<Product> products = new ArrayList<>();
-
 }

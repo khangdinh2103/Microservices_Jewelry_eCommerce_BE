@@ -15,7 +15,6 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
     private final AuthenticationEntryPoint delegate = new BearerTokenAuthenticationEntryPoint();
-
     private final ObjectMapper mapper;
 
     public CustomAuthenticationEntryPoint(ObjectMapper mapper) {
@@ -28,7 +27,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         this.delegate.commence(request, response, authException);
         response.setContentType("application/json;charset=UTF-8");
 
-        RestResponse<Object> res = new RestResponse<Object>();
+        RestResponse<Object> res = new RestResponse<>();
         res.setStatusCode(HttpStatus.UNAUTHORIZED.value());
         res.setError(authException.getCause().getMessage());
         res.setMessage("Token không hợp lệ (hết hạn, không đúng định dạng, hoặc không truyền JWT ở header)...");

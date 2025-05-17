@@ -15,27 +15,33 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "product")
+@Table(name = "products")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "productid", nullable = false)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "code", nullable = false)
+    private String code;
+
     @Column(name = "description", length = Integer.MAX_VALUE)
     private String description;
 
-    @Column(name = "stock", nullable = false)
-    private Integer stock;
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
 
     @Column(name = "price", nullable = false)
     private Double price;
 
-    @Column(name = "gender", nullable = false)
+    @Column(name = "status", nullable = false)
+    private String status;
+
+    @Column(name = "gender")
     private Integer gender;
 
     @Column(name = "material")
@@ -52,35 +58,74 @@ public class Product {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "categoryid")
-    @JsonIgnoreProperties({"products"})
-    private Category categoryId;
+    @JoinColumn(name = "category_id")
+    @JsonIgnoreProperties("products")
+    private Category category;
 
-    @Column(name = "createdat")
+    @Column(name = "created_at")
     private Instant createdAt;
 
-    @Column(name = "updatedat")
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "productId")
-    @JsonIgnoreProperties({"productId"})
-    private List<Productimage> productImages = new ArrayList<>();
+    @OneToMany(mappedBy = "product")
+    @JsonIgnoreProperties("product")
+    private List<ProductImage> productImages = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "collectionid")
-    @JsonIgnoreProperties({"products", "collectionImages"})
-    private Collection collectionId;
+    @JoinColumn(name = "collection_id")
+    @JsonIgnoreProperties({"products"})
+    private Collection collection;
+
 
     @Column(name = "size")
     private String size;
 
-    @OneToMany(mappedBy = "productId")
+    @OneToMany(mappedBy = "product")
     @JsonIgnore
     private List<Review> reviews = new ArrayList<>();
 
-    @OneToMany(mappedBy = "productId")
+    @OneToMany(mappedBy = "product")
     @JsonIgnore
     private List<ProductSalesSummary> productSalesSummaries = new ArrayList<>();
 
+    @OneToMany(mappedBy = "product")
+    @JsonIgnore
+    private List<ProductFeature> productFeatures = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product")
+    @JsonIgnore
+    private List<ProductVariant> productVariants = new ArrayList<>();
+
+    // Phương thức tương thích ngược
+    @Deprecated
+    public Integer getStock() {
+        return this.quantity;
+    }
+
+    @Deprecated
+    public void setStock(Integer stock) {
+        this.quantity = stock;
+    }
+
+    @Deprecated
+    public Category getCategoryId() {
+        return this.category;
+    }
+
+    @Deprecated
+    public void setCategoryId(Category category) {
+        this.category = category;
+    }
+
+    @Deprecated
+    public Collection getCollectionId() {
+        return this.collection;
+    }
+
+    @Deprecated
+    public void setCollectionId(Collection collection) {
+        this.collection = collection;
+    }
 }

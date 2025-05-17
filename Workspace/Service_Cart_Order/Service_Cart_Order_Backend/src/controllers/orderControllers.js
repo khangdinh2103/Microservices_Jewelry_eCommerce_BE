@@ -1,22 +1,26 @@
 const { Order, OrderDetail, Product, User } = require('../models');
 const ProductImage = require('../models/ProductImage');
 
-
 const createOrder = async (req, res) => {
     try {
-        const { userID, address, status, orderDetails, paymentStatus } = req.body;
+        const { userId, address, status, orderDetails, paymentStatus } = req.body;
 
-        const user = await User.findByPk(userID);
+        const user = await User.findByPk(userId);
         if (!user) {
             return res.status(404).json({ message: "Người dùng không tồn tại" });
         }
 
-        const order = await Order.create({ userID, address, status, paymentStatus });
+        const order = await Order.create({ 
+            user_id: userId, 
+            address, 
+            status, 
+            payment_status: paymentStatus 
+        });
 
         // Tạo chi tiết đơn hàng
         const orderItems = orderDetails.map(detail => ({
-            orderID: order.orderID,
-            productID: detail.productID,
+            order_id: order.id,
+            product_id: detail.productId,
             quantity: detail.quantity,
             price: detail.price
         }));
@@ -28,7 +32,6 @@ const createOrder = async (req, res) => {
         return res.status(500).json({ message: "Lỗi khi tạo đơn hàng" });
     }
 };
-
 
 const getOrders = async (req, res) => {
     try {
@@ -42,11 +45,10 @@ const getOrders = async (req, res) => {
     }
 };
 
-
 const getOrderById = async (req, res) => {
     try {
-        const { orderID } = req.params;
-        const order = await Order.findByPk(orderID, {
+        const { orderId } = req.params; // Đổi từ orderID
+        const order = await Order.findByPk(orderId, {
             include: [{ model: User, as: "user" }]
         });
 
@@ -62,10 +64,10 @@ const getOrderById = async (req, res) => {
 
 const updateOrder = async (req, res) => {
     try {
-        const { orderID } = req.params;
+        const { orderId } = req.params; // Đổi từ orderID
         const { address, status } = req.body;
 
-        const order = await Order.findByPk(orderID);
+        const order = await Order.findByPk(orderId);
         if (!order) {
             return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
         }
@@ -80,9 +82,9 @@ const updateOrder = async (req, res) => {
 
 const deleteOrder = async (req, res) => {
     try {
-        const { orderID } = req.params;
+        const { orderId } = req.params; // Đổi từ orderID
 
-        const order = await Order.findByPk(orderID);
+        const order = await Order.findByPk(orderId);
         if (!order) {
             return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
         }
@@ -97,10 +99,10 @@ const deleteOrder = async (req, res) => {
 
 const getOrderDetailById = async (req, res) => {
     try {
-        const { orderID } = req.params;
+        const { orderId } = req.params; // Đổi từ orderID
 
         const orderDetails = await OrderDetail.findAll({
-            where: { orderID },
+            where: { order_id: orderId },
             include: [{ model: Product, as: "product" }]
         });
 
@@ -114,20 +116,34 @@ const getOrderDetailById = async (req, res) => {
         return res.status(500).json({ message: "Lỗi khi lấy chi tiết đơn hàng" });
     }
 };
+
 const getOrderByIdUser = async (req, res) => {
     try {
-        const { userID } = req.params;
+        const { userId } = req.params; // Đổi từ userID
 
         // Kiểm tra xem user có tồn tại không
-        const user = await User.findByPk(userID);
+        const user = await User.findByPk(userId);
         if (!user) {
             return res.status(404).json({ message: "Người dùng không tồn tại" });
         }
 
         // Lấy danh sách đơn hàng của user
         const orders = await Order.findAll({
-            where: { userID },
-            include: [{ model: OrderDetail, as: "orderDetails", include: [{ model: Product, as: "product", include:[{model: ProductImage, as: "imageSet", attributes: ['imageURL'], limit: 1,}] }] }]
+            where: { user_id: userId },
+            include: [{ 
+                model: OrderDetail, 
+                as: "orderDetails", 
+                include: [{ 
+                    model: Product, 
+                    as: "product", 
+                    include:[{
+                        model: ProductImage, 
+                        as: "imageSet", 
+                        attributes: ['image_url'], 
+                        limit: 1,
+                    }] 
+                }] 
+            }]
         });
 
         if (orders.length === 0) {
@@ -142,9 +158,9 @@ const getOrderByIdUser = async (req, res) => {
 };
 
 //Tạm thời lấy user
-const getUserById = async (userID) => {
+const getUserById = async (userId) => {
     try {
-        const user = await User.findOne({ where: { userID } });
+        const user = await User.findOne({ where: { id: userId } }); // Đổi từ userID
 
         if (!user) {
             return { error: 'Người dùng không tồn tại' };
@@ -157,7 +173,6 @@ const getUserById = async (userID) => {
     }
 };
 
-
 module.exports = {
     createOrder,
     getOrders,
@@ -167,5 +182,4 @@ module.exports = {
     getOrderDetailById,
     getOrderByIdUser,
     getUserById
-    
 };

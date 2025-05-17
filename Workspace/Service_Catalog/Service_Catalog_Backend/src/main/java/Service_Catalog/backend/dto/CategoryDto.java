@@ -11,5 +11,6 @@ public class CategoryDto {
     private Integer id;
     private String name;
     private String description;
+    private String url;
     private List<Integer> productIds;
 }

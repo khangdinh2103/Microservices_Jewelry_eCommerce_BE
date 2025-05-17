@@ -31,10 +31,25 @@ public class RoleController {
         this.roleService = roleService;
     }
 
+    @GetMapping("/roles/{id}")
+    @ApiMessage("Fetch role by id")
+    public ResponseEntity<Role> getById(@PathVariable("id") long id) throws IdInvalidException {
+        Role role = this.roleService.fetchById(id);
+        if (role == null) {
+            throw new IdInvalidException("Role với id = " + id + " không tồn tại");
+        }
+        return ResponseEntity.ok().body(role);
+    }
+
+    @GetMapping("/roles")
+    @ApiMessage("Fetch roles")
+    public ResponseEntity<ResultPaginationDTO> getPermissions(@Filter Specification<Role> spec, Pageable pageable) {
+        return ResponseEntity.ok(this.roleService.getRoles(spec, pageable));
+    }
+
     @PostMapping("/roles")
     @ApiMessage("Create a role")
     public ResponseEntity<Role> create(@Valid @RequestBody Role r) throws IdInvalidException {
-        // check name
         if (this.roleService.existByName(r.getName())) {
             throw new IdInvalidException("Role với name = " + r.getName() + " đã tồn tại");
         }
@@ -44,51 +59,19 @@ public class RoleController {
     @PutMapping("/roles")
     @ApiMessage("Update a role")
     public ResponseEntity<Role> update(@Valid @RequestBody Role r) throws IdInvalidException {
-        // check id
         if (this.roleService.fetchById(r.getId()) == null) {
             throw new IdInvalidException("Role với id = " + r.getId() + " không tồn tại");
         }
-
-        // check name
-        // if (this.roleService.existByName(r.getName())) {
-        // throw new IdInvalidException("Role với name = " + r.getName() + " đã tồn
-        // tại");
-        // }
-
         return ResponseEntity.ok().body(this.roleService.update(r));
-
-        // return
-        // ResponseEntity.status(HttpStatus.CREATED).body(this.roleService.update(r));
     }
 
     @DeleteMapping("/roles/{id}")
     @ApiMessage("Delete a role")
     public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
-        // check id
         if (this.roleService.fetchById(id) == null) {
             throw new IdInvalidException("Role với id = " + id + " không tồn tại");
         }
         this.roleService.delete(id);
         return ResponseEntity.ok().body(null);
-    }
-
-    @GetMapping("/roles")
-    @ApiMessage("Fetch roles")
-    public ResponseEntity<ResultPaginationDTO> getPermissions(
-            @Filter Specification<Role> spec, Pageable pageable) {
-
-        return ResponseEntity.ok(this.roleService.getRoles(spec, pageable));
-    }
-
-    @GetMapping("/roles/{id}")
-    @ApiMessage("Fetch role by id")
-    public ResponseEntity<Role> getById(@PathVariable("id") long id) throws IdInvalidException {
-
-        Role role = this.roleService.fetchById(id);
-        if (role == null) {
-            throw new IdInvalidException("Role với id = " + id + " không tồn tại");
-        }
-
-        return ResponseEntity.ok().body(role);
     }
 }

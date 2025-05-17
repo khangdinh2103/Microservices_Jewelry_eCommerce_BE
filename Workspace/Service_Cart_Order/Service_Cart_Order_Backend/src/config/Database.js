@@ -1,17 +1,23 @@
 const { Sequelize } = require('sequelize');
 
-
-
-const sequelize = new Sequelize('jewelry', 'root', '', {
+const sequelize = new Sequelize('JEC', 'jec_admin', 'jec_admin', {
     host: 'localhost',
-    port: 3306, 
-    dialect: 'mysql',
+    port: 6543, 
+    dialect: 'postgres',
     dialectOptions: {
-        connectTimeout: 10000,
+        ssl: false,
     },
-    });
+    logging: false,
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+    }
+});
+
 sequelize.authenticate()
-    .then(() => console.log('Database connected...'))
-    .catch(err => console.error('Connection error:', err));
+    .then(() => console.log('PostgreSQL database connected...'))
+    .catch(err => console.error('PostgreSQL connection error:', err));
 
 module.exports = sequelize;

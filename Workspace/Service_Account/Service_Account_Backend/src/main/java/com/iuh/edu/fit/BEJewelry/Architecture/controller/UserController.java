@@ -1,5 +1,8 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,7 +16,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqChangePasswordDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqOccasionReminderDTO;
@@ -22,6 +29,7 @@ import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUpdateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.scheduler.OccasionReminderScheduler;
+import com.iuh.edu.fit.BEJewelry.Architecture.service.FileStorageService;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.OccasionReminderService;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.SecurityUtil;
@@ -35,18 +43,38 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1")
 public class UserController {
     private final UserService userService;
-
     private final PasswordEncoder passwordEncoder;
+    private final FileStorageService fileStorageService;
     private final OccasionReminderService occasionReminderService;
     private final ApplicationContext applicationContext;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder, 
-                         OccasionReminderService occasionReminderService,
-                         ApplicationContext applicationContext) {
+    public UserController(
+            UserService userService, 
+            PasswordEncoder passwordEncoder,
+            FileStorageService fileStorageService,
+            OccasionReminderService occasionReminderService,
+            ApplicationContext applicationContext) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.fileStorageService = fileStorageService;
         this.occasionReminderService = occasionReminderService;
         this.applicationContext = applicationContext;
+    }
+
+    @GetMapping("/users/{id}")
+    @ApiMessage("fetch user by id")
+    public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") long id) throws IdInvalidException {
+        User fetchUser = this.userService.fetchUserById(id);
+        if (fetchUser == null) {
+            throw new IdInvalidException("User với id = " + id + " không tồn tại");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.convertToResUserDTO(fetchUser));
+    }
+
+    @GetMapping("/users")
+    @ApiMessage("Fetches all users")
+    public ResponseEntity<ResultPaginationDTO> getAllUser(@Filter Specification<User> spec, Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser(spec, pageable));
     }
 
     @PostMapping("/users")
@@ -64,38 +92,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(newUser));
     }
 
-    @DeleteMapping("/users/{id}")
-    @ApiMessage("Delete a user")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id) throws IdInvalidException {
-        User currentUser = this.userService.fetchUserById(id);
-        if (currentUser == null) {
-            throw new IdInvalidException("User với id = " + id + " không tồn tại");
-        }
-
-        this.userService.handleDeleteUser(id);
-        return ResponseEntity.ok(null);
-    }
-
-    // fetch user by id
-    @GetMapping("/users/{id}")
-    @ApiMessage("fetch user by id")
-    public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") long id) throws IdInvalidException {
-        User fetchUser = this.userService.fetchUserById(id);
-        if (fetchUser == null) {
-            throw new IdInvalidException("User với id = " + id + " không tồn tại");
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.convertToResUserDTO(fetchUser));
-    }
-
-    // fetch all users
-    @GetMapping("/users")
-    @ApiMessage("Fetches all users")
-    public ResponseEntity<ResultPaginationDTO> getAllUser(@Filter Specification<User> spec,
-            Pageable pageable) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchAllUser(spec, pageable));
-    }
-
     @PutMapping("/users")
     @ApiMessage("Update a user")
     public ResponseEntity<ResUpdateUserDTO> updateUser(@RequestBody User user) throws IdInvalidException {
@@ -104,6 +100,17 @@ public class UserController {
             throw new IdInvalidException("User với id = " + user.getId() + " không tồn tại");
         }
         return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(updateUser));
+    }
+
+    @DeleteMapping("/users/{id}")
+    @ApiMessage("Delete a user")
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id) throws IdInvalidException {
+        User currentUser = this.userService.fetchUserById(id);
+        if (currentUser == null) {
+            throw new IdInvalidException("User với id = " + id + " không tồn tại");
+        }
+        this.userService.handleDeleteUser(id);
+        return ResponseEntity.ok(null);
     }
 
     @GetMapping("/profile")
@@ -129,12 +136,36 @@ public class UserController {
         String email = SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         User user = userService.handleGetUserByUserName(email);
+
         if (!passwordEncoder.matches(reqChangePasswordDTO.getOldPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu cũ không chính xác");
         }
+
         user.setPassword(passwordEncoder.encode(reqChangePasswordDTO.getNewPassword()));
         userService.handleUpdateUser(user);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/profile/avatar")
+    public ResponseEntity<Map<String, String>> updateAvatar(@RequestParam("file") MultipartFile file) {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        User user = userService.handleGetUserByUserName(email);
+
+        String fileName = fileStorageService.storeFile(file);
+        user.setAvatar(fileName);
+        userService.handleUpdateUser(user);
+
+        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/files/")
+                .path(fileName)
+                .toUriString();
+
+        Map<String, String> response = new HashMap<>();
+        response.put("avatar", fileName);
+        response.put("avatarUrl", fileDownloadUri);
+
+        return ResponseEntity.ok(response);
     }
     
     // Special Occasion Reminders endpoints

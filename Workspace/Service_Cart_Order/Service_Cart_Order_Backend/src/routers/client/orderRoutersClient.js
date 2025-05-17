@@ -9,15 +9,14 @@ const {
     getUserById
 } = require('../../controllers/orderControllers');
 
-
 const router = express.Router();
 
-router.post('/orders', createOrder); // Tạo đơn hàng
-router.get('/orders', getOrders); // Lấy danh sách đơn hàng
-router.get('/orders/:orderID', getOrderById); // Lấy đơn hàng theo ID
-router.delete('/orders/:orderID', deleteOrder); // Xóa đơn hàng
-router.get('/orders/:orderID/details', getOrderDetailById); 
-router.get('/orders/user/:userID', getOrderByIdUser); 
-router.get('/user/:userID', getUserById); 
+router.post('/orders', createOrder);
+router.get('/orders', getOrders);
+router.get('/orders/:orderId', getOrderById); // Đổi từ orderID
+router.delete('/orders/:orderId', deleteOrder); // Đổi từ orderID
+router.get('/orders/:orderId/details', getOrderDetailById); // Đổi từ orderID
+router.get('/orders/user/:userId', getOrderByIdUser); // Đổi từ userID
+router.get('/user/:userId', getUserById); // Đổi từ userID
 
 module.exports = router;

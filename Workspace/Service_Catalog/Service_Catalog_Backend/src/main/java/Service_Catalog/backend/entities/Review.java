@@ -6,12 +6,16 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Getter
 @Setter
+@Table(name = "reviews")
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @Column(name = "content")
@@ -20,12 +24,33 @@ public class Review {
     @Column(name = "rating", nullable = false)
     private Integer rating;
 
-    @Column(name = "userid")
-    private Integer userid;
+    @Column(name = "user_id")
+    private Integer userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "productid")
-    private Product productId;
+    @JoinColumn(name = "product_id")
+    @JsonIgnoreProperties("productImages")
+    private Product product;
 
+    // Phương thức tương thích ngược
+    @Deprecated
+    public Integer getUserid() {
+        return this.userId;
+    }
+
+    @Deprecated
+    public void setUserid(Integer userId) {
+        this.userId = userId;
+    }
+
+    @Deprecated
+    public Product getProductId() {
+        return this.product;
+    }
+
+    @Deprecated
+    public void setProductId(Product product) {
+        this.product = product;
+    }
 }

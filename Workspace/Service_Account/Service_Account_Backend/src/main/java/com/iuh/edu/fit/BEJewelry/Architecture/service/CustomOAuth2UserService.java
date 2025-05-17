@@ -1,6 +1,5 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.service;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -50,7 +49,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             newUser.setPassword(localEncoder.encode(randomPassword));
             
             // Get the default role
-            Role userRole = userService.getRoleByName("ROLE_USER");
+            Role userRole = userService.getRoleByName("USER");
             if (userRole != null) {
                 newUser.setRole(userRole);
             }

@@ -11,6 +11,6 @@ import java.util.List;
 
 public interface ProductSalesSummaryRepository extends JpaRepository<ProductSalesSummary, Integer> {
 
-    @Query("SELECT pss.productId FROM ProductSalesSummary pss WHERE pss.orderDate >= :threeMonthsAgo GROUP BY pss.productId ORDER BY SUM(pss.quantitySold) DESC")
+    @Query("SELECT pss.product FROM ProductSalesSummary pss WHERE pss.orderDate >= :threeMonthsAgo GROUP BY pss.product ORDER BY SUM(pss.quantitySold) DESC")
     List<Product> findTop10BestSellingProducts(@Param("threeMonthsAgo") Instant threeMonthsAgo);
 }

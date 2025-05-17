@@ -1,5 +1,6 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.controller;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResCreateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUpdateUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUserDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
+import com.iuh.edu.fit.BEJewelry.Architecture.scheduler.OccasionReminderScheduler;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.OccasionReminderService;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.SecurityUtil;
@@ -36,12 +38,15 @@ public class UserController {
 
     private final PasswordEncoder passwordEncoder;
     private final OccasionReminderService occasionReminderService;
+    private final ApplicationContext applicationContext;
 
     public UserController(UserService userService, PasswordEncoder passwordEncoder, 
-                         OccasionReminderService occasionReminderService) {
+                         OccasionReminderService occasionReminderService,
+                         ApplicationContext applicationContext) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.occasionReminderService = occasionReminderService;
+        this.applicationContext = applicationContext;
     }
 
     @PostMapping("/users")
@@ -176,5 +181,22 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         occasionReminderService.deleteOccasionReminder(email, id);
         return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/profile/occasions/test-reminder")
+    @ApiMessage("Test occasion reminder email")
+    public ResponseEntity<?> testOccasionReminder() {
+        String email = SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        
+        try {
+            // Get the scheduler bean and run it manually
+            OccasionReminderScheduler scheduler = applicationContext.getBean(OccasionReminderScheduler.class);
+            scheduler.sendOccasionReminders();
+            return ResponseEntity.ok("Đã kích hoạt kiểm tra nhắc nhở dịp đặc biệt");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi gửi nhắc nhở: " + e.getMessage());
+        }
     }
 }

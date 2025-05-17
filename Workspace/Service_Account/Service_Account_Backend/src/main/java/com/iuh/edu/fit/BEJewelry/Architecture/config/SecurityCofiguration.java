@@ -48,11 +48,6 @@ public class SecurityCofiguration {
     private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
 

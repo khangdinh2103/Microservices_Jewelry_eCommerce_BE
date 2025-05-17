@@ -2,7 +2,6 @@ package com.iuh.edu.fit.BEJewelry.Architecture.config;
 
 import java.util.Arrays;
 
-import org.checkerframework.checker.units.qual.m;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;

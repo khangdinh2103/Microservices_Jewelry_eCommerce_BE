@@ -1,8 +1,6 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.util.error;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.RestResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,7 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.RestResponse;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalException {

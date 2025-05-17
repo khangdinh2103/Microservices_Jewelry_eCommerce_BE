@@ -1,20 +1,19 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Permission;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.Meta;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.PermissionRepository;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.RoleRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RoleService {
@@ -30,9 +29,10 @@ public class RoleService {
         Optional<Role> roleOptional = this.roleRepository.findById(id);
         return roleOptional.orElse(null);
     }
-    
+
     /**
      * Get a role by its name
+     *
      * @param name the name of the role to find
      * @return the Role object if found, null otherwise
      */

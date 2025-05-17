@@ -1,21 +1,19 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.config;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.HandlerMapping;
-
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Permission;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
 import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.SecurityUtil;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.error.PermissionException;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.HandlerMapping;
+
+import java.util.List;
 
 public class PermissionInterceptor implements HandlerInterceptor {
     @Autowired

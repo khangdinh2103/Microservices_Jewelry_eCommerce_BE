@@ -1,9 +1,10 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.*;
+import com.iuh.edu.fit.BEJewelry.Architecture.repository.RoleRepository;
+import com.iuh.edu.fit.BEJewelry.Architecture.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,15 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.Meta;
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResCreateUserDTO;
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUpdateUserDTO;
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResUserDTO;
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.ResultPaginationDTO;
-import com.iuh.edu.fit.BEJewelry.Architecture.repository.RoleRepository;
-import com.iuh.edu.fit.BEJewelry.Architecture.repository.UserRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -29,8 +24,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserService(
-            UserRepository userRepository, 
-            RoleService roleService, 
+            UserRepository userRepository,
+            RoleService roleService,
             RoleRepository roleRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -38,9 +33,10 @@ public class UserService {
         this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
     }
-    
+
     /**
      * Get a Role by its name
+     *
      * @param roleName the name of the role to find
      * @return the Role object if found, null otherwise
      */
@@ -71,7 +67,7 @@ public class UserService {
             user.setRole(userRole);
         } else {
             Role r = this.roleService.fetchById(user.getRole().getId());
-            user.setRole(r != null ? r : null);
+            user.setRole(r);
         }
         return userRepository.save(user);
     }
@@ -183,7 +179,7 @@ public class UserService {
 
         return result;
     }
-    
+
     // Add this method to handle user creation with raw password
     public User handleCreateUserWithRawPassword(User user) {
         // Encode the password before saving

@@ -1,25 +1,5 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.controller;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.request.ReqForgotPasswordDTO;
@@ -34,16 +14,30 @@ import com.iuh.edu.fit.BEJewelry.Architecture.util.SecurityUtil;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.annotation.ApiMessage;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.error.IdInvalidException;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.error.PermissionException;
-
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -61,7 +55,7 @@ public class AuthController {
     private String frontendUrl;
 
     public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder, SecurityUtil securityUtil,
-            UserService userService, PasswordEncoder passwordEncoder, AuthService authService) {
+                          UserService userService, PasswordEncoder passwordEncoder, AuthService authService) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.securityUtil = securityUtil;
         this.userService = userService;
@@ -72,7 +66,7 @@ public class AuthController {
     @GetMapping("/auth/google")
     @ApiMessage("Handle Google Login")
     public ResponseEntity<?> handleGoogleLogin(@AuthenticationPrincipal OAuth2User principal,
-            HttpServletRequest request) {
+                                               HttpServletRequest request) {
         // Add debug logging
         System.out.println("Google login endpoint called");
 
@@ -174,28 +168,22 @@ public class AuthController {
             // Redirect to frontend application for browser navigation
             HttpHeaders headers = new HttpHeaders();
 
-            try {
-                // Create a URL with user information and URL encode the name to handle special
-                // characters
-                String redirectUrl = frontendUrl +
-                // Add a specific path for handling login success
-                        "?token=" + access_token +
-                        "&userId=" + currentUserDB.getId() +
-                        "&email=" + java.net.URLEncoder.encode(currentUserDB.getEmail(), "UTF-8") +
-                        "&name=" + java.net.URLEncoder.encode(currentUserDB.getName(), "UTF-8");
+            // Create a URL with user information and URL encode the name to handle special
+            // characters
+            String redirectUrl = frontendUrl +
+                    // Add a specific path for handling login success
+                    "?token=" + access_token +
+                    "&userId=" + currentUserDB.getId() +
+                    "&email=" + java.net.URLEncoder.encode(currentUserDB.getEmail(), StandardCharsets.UTF_8) +
+                    "&name=" + java.net.URLEncoder.encode(currentUserDB.getName(), StandardCharsets.UTF_8);
 
-                // Add role if available
-                if (currentUserDB.getRole() != null) {
-                    redirectUrl += "&role=" + currentUserDB.getRole().getName();
-                }
-
-                System.out.println("Redirecting to: " + redirectUrl);
-                headers.add("Location", redirectUrl);
-            } catch (java.io.UnsupportedEncodingException e) {
-                System.out.println("Error encoding URL parameters: " + e.getMessage());
-                // Fallback to a simpler URL if encoding fails
-                headers.add("Location", frontendUrl + "/login/success?token=" + access_token);
+            // Add role if available
+            if (currentUserDB.getRole() != null) {
+                redirectUrl += "&role=" + currentUserDB.getRole().getName();
             }
+
+            System.out.println("Redirecting to: " + redirectUrl);
+            headers.add("Location", redirectUrl);
 
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header(HttpHeaders.SET_COOKIE, resCookies.toString())

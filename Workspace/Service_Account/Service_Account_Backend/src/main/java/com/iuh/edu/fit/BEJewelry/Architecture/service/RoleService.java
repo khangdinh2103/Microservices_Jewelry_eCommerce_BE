@@ -30,6 +30,15 @@ public class RoleService {
         Optional<Role> roleOptional = this.roleRepository.findById(id);
         return roleOptional.orElse(null);
     }
+    
+    /**
+     * Get a role by its name
+     * @param name the name of the role to find
+     * @return the Role object if found, null otherwise
+     */
+    public Role getRoleByName(String name) {
+        return this.roleRepository.findByName(name);
+    }
 
     public boolean existByName(String name) {
         return this.roleRepository.existsByName(name);

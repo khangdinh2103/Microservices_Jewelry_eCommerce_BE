@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -25,14 +26,28 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final RoleService roleService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, RoleService roleService, RoleRepository roleRepository) {
+    public UserService(
+            UserRepository userRepository, 
+            RoleService roleService, 
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
+    }
+    
+    /**
+     * Get a Role by its name
+     * @param roleName the name of the role to find
+     * @return the Role object if found, null otherwise
+     */
+    public Role getRoleByName(String roleName) {
+        return this.roleService.getRoleByName(roleName);
     }
 
-    // Core user operations
     public User fetchUserById(long id) {
         Optional<User> userOptional = this.userRepository.findById(id);
         return userOptional.orElse(null);
@@ -54,6 +69,9 @@ public class UserService {
         if (user.getRole() == null) {
             Role userRole = this.roleRepository.findByName("USER");
             user.setRole(userRole);
+        } else {
+            Role r = this.roleService.fetchById(user.getRole().getId());
+            user.setRole(r != null ? r : null);
         }
         return userRepository.save(user);
     }
@@ -164,5 +182,12 @@ public class UserService {
         result.setResult(listUser);
 
         return result;
+    }
+    
+    // Add this method to handle user creation with raw password
+    public User handleCreateUserWithRawPassword(User user) {
+        // Encode the password before saving
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return this.handleCreateUser(user);
     }
 }

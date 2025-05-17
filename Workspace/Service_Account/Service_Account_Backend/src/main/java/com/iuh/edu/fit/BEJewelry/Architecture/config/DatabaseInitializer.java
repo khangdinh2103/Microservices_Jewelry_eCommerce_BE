@@ -119,6 +119,16 @@ public class DatabaseInitializer implements CommandLineRunner {
         permissions.add(new Permission("Get deliveries with pagination", "/api/v1/deliveries", "GET", "DELIVERIES"));
         permissions.add(new Permission("Get my deliveries", "/api/v1/deliveries/my", "GET", "DELIVERIES"));
 
+        // Occasion management - added from master branch
+        permissions.add(new Permission("Get all occasion reminders", "/api/v1/profile/occasions", "GET", "OCCASIONS"));
+        permissions.add(
+                new Permission("Get upcoming occasions", "/api/v1/profile/occasions/upcoming", "GET", "OCCASIONS"));
+        permissions.add(new Permission("Create occasion reminder", "/api/v1/profile/occasions", "POST", "OCCASIONS"));
+        permissions
+                .add(new Permission("Update occasion reminder", "/api/v1/profile/occasions/{id}", "PUT", "OCCASIONS"));
+        permissions.add(
+                new Permission("Delete occasion reminder", "/api/v1/profile/occasions/{id}", "DELETE", "OCCASIONS"));
+
         this.permissionRepository.saveAll(permissions);
     }
 
@@ -139,6 +149,10 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         List<Permission> userPermissions = new ArrayList<>();
         userPermissions.addAll(modulePermissions.get("PROFILES"));
+        // Add OCCASIONS permissions for regular users
+        if (modulePermissions.containsKey("OCCASIONS")) {
+            userPermissions.addAll(modulePermissions.get("OCCASIONS"));
+        }
         userPermissions.add(getPermissionByPath("/api/v1/products/{id}", "GET", allPermissions));
         userPermissions.add(getPermissionByPath("/api/v1/products", "GET", allPermissions));
         userPermissions.add(getPermissionByPath("/api/v1/orders", "POST", allPermissions));

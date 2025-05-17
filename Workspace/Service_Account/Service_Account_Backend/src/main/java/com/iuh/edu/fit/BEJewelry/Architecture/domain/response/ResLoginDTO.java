@@ -16,6 +16,12 @@ public class ResLoginDTO {
     @JsonProperty("access_token")
     private String accessToken;
     private UserLogin user;
+    private String error;
+    
+    // Constructor for error responses
+    public ResLoginDTO(String errorMessage) {
+        this.error = errorMessage;
+    }
 
     @Getter
     @Setter

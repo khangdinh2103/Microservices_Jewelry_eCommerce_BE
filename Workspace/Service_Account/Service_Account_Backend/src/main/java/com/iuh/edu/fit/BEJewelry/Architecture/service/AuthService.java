@@ -23,7 +23,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
-    @Value("${app.frontend.url:http://localhost:8201}")
+    @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
     public String forgotPassword(String email) throws PermissionException {

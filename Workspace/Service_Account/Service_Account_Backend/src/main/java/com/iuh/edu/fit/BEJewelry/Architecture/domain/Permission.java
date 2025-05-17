@@ -58,6 +58,15 @@ public class Permission {
         this.module = module;
     }
 
+    // Thêm các phương thức getter để tương thích với code trong DatabaseInitializer
+    public String getGroup() {
+        return this.module;
+    }
+    
+    public String getEndpoint() {
+        return this.apiPath;
+    }
+
     @PrePersist
     public void handleBeforeCreate() {
         this.createdBy = SecurityUtil.getCurrentUserLogin().orElse("");

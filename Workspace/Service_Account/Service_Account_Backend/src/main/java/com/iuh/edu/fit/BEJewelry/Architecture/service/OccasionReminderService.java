@@ -229,7 +229,7 @@ public class OccasionReminderService {
     private void sendReminderEmail(OccasionReminder reminder) throws MessagingException {
         User user = reminder.getUser();
         String recipientEmail = user.getEmail();
-        String subject = "Sắp đến " + reminder.getOccasionName() + " - Gợi ý quà tặng trang sức";
+        String subject = "Nhắc nhở: " + reminder.getOccasionName() + " sắp đến!";
         
         LocalDate occasionDate = reminder.getOccasionDate();
         if (reminder.isYearlyRecurring()) {
@@ -243,40 +243,64 @@ public class OccasionReminderService {
         long daysRemaining = ChronoUnit.DAYS.between(LocalDate.now(), occasionDate);
         
         StringBuilder emailContent = new StringBuilder();
-        emailContent.append("<h2>Nhắc nhở dịp đặc biệt sắp tới</h2>");
+        emailContent.append("<!DOCTYPE html>");
+        emailContent.append("<html>");
+        emailContent.append("<head>");
+        emailContent.append("<meta charset=\"UTF-8\">");
+        emailContent.append("<style>");
+        emailContent.append("body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }");
+        emailContent.append(".header { background-color: #4a90e2; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }");
+        emailContent.append(".content { padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 5px 5px; }");
+        emailContent.append(".footer { text-align: center; margin-top: 20px; font-size: 12px; color: #777; }");
+        emailContent.append(".highlight { font-weight: bold; color: #4a90e2; }");
+        emailContent.append(".gift-ideas { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px; }");
+        emailContent.append(".button { display: inline-block; background-color: #4a90e2; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; }");
+        emailContent.append("</style>");
+        emailContent.append("</head>");
+        emailContent.append("<body>");
+        
+        // Header
+        emailContent.append("<div class=\"header\">");
+        emailContent.append("<h1>Nhắc nhở dịp đặc biệt</h1>");
+        emailContent.append("</div>");
+        
+        // Content
+        emailContent.append("<div class=\"content\">");
         emailContent.append("<p>Xin chào ").append(user.getName()).append(",</p>");
-        emailContent.append("<p>Chúng tôi muốn nhắc bạn rằng còn <strong>").append(daysRemaining)
-                .append(" ngày</strong> nữa là đến <strong>").append(reminder.getOccasionName()).append("</strong>");
+        emailContent.append("<p>Chúng tôi muốn nhắc bạn rằng còn <span class=\"highlight\">").append(daysRemaining)
+                .append(" ngày</strong> nữa là đến <span class=\"highlight\">").append(reminder.getOccasionName()).append("</span>");
         
         if (reminder.getRecipientName() != null && !reminder.getRecipientName().isEmpty()) {
-            emailContent.append(" của ").append(reminder.getRecipientName());
+            emailContent.append(" của <span class=\"highlight\">").append(reminder.getRecipientName()).append("</span>");
             if (reminder.getRelationship() != null && !reminder.getRelationship().isEmpty()) {
                 emailContent.append(" (").append(reminder.getRelationship()).append(")");
             }
         }
         
-        emailContent.append(".</p>");
+        emailContent.append(" vào ngày <span class=\"highlight\">").append(occasionDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))).append("</span>.</p>");
         
-        emailContent.append("<p>Đây là thời điểm tuyệt vời để chọn một món quà trang sức đặc biệt. " +
-                "Dưới đây là một số gợi ý phù hợp với dịp này:</p>");
+        // Gift preferences if available
+        if (reminder.getGiftPreferences() != null && !reminder.getGiftPreferences().isEmpty()) {
+            emailContent.append("<div class=\"gift-ideas\">");
+            emailContent.append("<h3>Gợi ý quà tặng:</h3>");
+            emailContent.append("<p>").append(reminder.getGiftPreferences()).append("</p>");
+            emailContent.append("</div>");
+        }
         
-        // Add product recommendations
-        emailContent.append("<div style='display: flex; gap: 20px;'>");
-        // This would be replaced with actual product recommendations
-        emailContent.append("<div style='border: 1px solid #ddd; padding: 15px; border-radius: 5px;'>");
-        emailContent.append("<img src='https://example.com/product1.jpg' style='width: 100%; max-width: 200px;' />");
-        emailContent.append("<h3>Vòng tay bạc 925</h3>");
-        emailContent.append("<p>1.290.000 VNĐ</p>");
-        emailContent.append("<a href='http://localhost:3000/products/1' style='display: block; text-align: center; " +
-                "background-color: #4CAF50; color: white; padding: 10px; text-decoration: none; border-radius: 5px;'>" +
-                "Xem chi tiết</a>");
-        emailContent.append("</div>");
-        emailContent.append("</div>");
+        emailContent.append("<p>Hãy chuẩn bị để làm cho ngày đặc biệt này thật ý nghĩa!</p>");
         
-        emailContent.append("<p>Truy cập <a href='http://localhost:3000/profile/occasions'>trang quản lý dịp đặc biệt</a> " +
-                "để cập nhật hoặc thêm dịp mới.</p>");
+        emailContent.append("<p><a href=\"http://localhost:3000/profile/occasions\" class=\"button\">Quản lý dịp đặc biệt</a></p>");
         
         emailContent.append("<p>Trân trọng,<br>Đội ngũ Jewelry</p>");
+        emailContent.append("</div>");
+        
+        // Footer
+        emailContent.append("<div class=\"footer\">");
+        emailContent.append("<p>Email này được gửi tự động từ hệ thống nhắc nhở dịp đặc biệt của Jewelry.</p>");
+        emailContent.append("</div>");
+        
+        emailContent.append("</body>");
+        emailContent.append("</html>");
         
         emailService.sendHtmlEmail(recipientEmail, subject, emailContent.toString());
     }
@@ -300,8 +324,8 @@ public class OccasionReminderService {
         
         dto.setDaysRemaining(ChronoUnit.DAYS.between(today, occasionDate));
         
-        // Add product recommendations (placeholder - would be implemented with actual product service)
-        dto.setProductRecommendations(getProductRecommendations(reminder));
+        // Không thêm gợi ý sản phẩm
+        dto.setProductRecommendations(new ArrayList<>());
         
         return dto;
     }

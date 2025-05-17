@@ -26,5 +26,8 @@ public interface OccasionReminderRepository extends JpaRepository<OccasionRemind
     
     List<OccasionReminder> findByReminderSentFalse();
     
+    // Thêm phương thức này vào OccasionReminderRepository
+    List<OccasionReminder> findByReminderSentTrue();
+    
     OccasionReminder findByUserAndId(User user, Long id);
 }

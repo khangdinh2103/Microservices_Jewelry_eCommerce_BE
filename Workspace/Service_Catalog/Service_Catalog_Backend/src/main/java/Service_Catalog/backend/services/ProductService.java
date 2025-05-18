@@ -5,6 +5,7 @@ import Service_Catalog.backend.entities.ProductSalesSummary;
 import Service_Catalog.backend.repositories.ProductRepository;
 import Service_Catalog.backend.repositories.ProductSalesSummaryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -81,16 +82,24 @@ public class ProductService {
         return productSalesSummaryRepository.findTop10BestSellingProducts(threeMonthsAgo);
     }
 
-    public List<Product> getSimilarProducts(Integer productId) {
+    public List<Product> getNewArrivalsProducts(Integer limit) {
+        PageRequest pageRequest = PageRequest.of(0, limit);
+        return productRepository.getNewArrivalsProducts(pageRequest);
+    }
+
+    public List<Product> getSimilarProducts(Integer productId, Integer limit) {
         Product product = productRepository.findById(productId).orElse(null);
         if (product == null) {
             return null;
         }
+        
+        PageRequest pageRequest = PageRequest.of(0, limit);
         return productRepository.findSimilarProducts(
                 productId,
                 product.getCollectionId() != null ? product.getCollectionId().getId() : null,
                 product.getBrand(),
-                product.getCategoryId() != null ? product.getCategoryId().getId() : null);
+                product.getCategoryId() != null ? product.getCategoryId().getId() : null,
+                pageRequest);
     }
 
     // In ProductService implementation

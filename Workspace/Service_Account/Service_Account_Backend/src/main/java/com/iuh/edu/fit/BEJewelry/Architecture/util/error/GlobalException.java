@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.response.RestResponse;
+import com.iuh.edu.fit.BEJewelry.Architecture.util.error.exception.RateLimitExceededException;
 
 @RestControllerAdvice
 public class GlobalException {
@@ -71,5 +72,16 @@ public class GlobalException {
         res.setMessage("Forbidden");
         res.setError(ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<RestResponse<String>> handleRateLimitExceededException(RateLimitExceededException ex) {
+        RestResponse<String> response = new RestResponse<>(
+                429,
+                "TOO_MANY_REQUESTS",
+                ex.getMessage(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
     }
 }

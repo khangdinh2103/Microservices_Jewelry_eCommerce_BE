@@ -12,7 +12,6 @@ import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
 
 @Component("userDetailsService")
 public class UserDetailsCustom implements UserDetailsService {
-
     private final UserService userService;
 
     public UserDetailsCustom(UserService userService) {
@@ -21,8 +20,7 @@ public class UserDetailsCustom implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        com.iuh.edu.fit.BEJewelry.Architecture.domain.User user = this.userService
-                .handleGetUserByUserName(username);
+        com.iuh.edu.fit.BEJewelry.Architecture.domain.User user = this.userService.handleGetUserByUserName(username);
 
         if (user == null) {
             throw new UsernameNotFoundException("UserName/Password không hợp lệ");
@@ -33,5 +31,4 @@ public class UserDetailsCustom implements UserDetailsService {
                 user.getPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
     }
-
 }

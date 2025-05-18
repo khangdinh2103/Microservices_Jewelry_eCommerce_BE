@@ -1,9 +1,11 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.domain.request;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class ReqResetPasswordDTO {
     @NotBlank(message = "Token không được để trống")
     private String token;

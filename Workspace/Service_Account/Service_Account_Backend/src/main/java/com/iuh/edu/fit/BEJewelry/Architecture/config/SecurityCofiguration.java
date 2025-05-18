@@ -35,25 +35,17 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 @RequiredArgsConstructor
 public class SecurityCofiguration {
-    @Value("${huy.jwt.base64-secret}")
+    @Value("${jec.jwt.base64-secret}")
     private String jwtKey;
 
     private static final Logger LOG = LoggerFactory.getLogger(SecurityAutoConfiguration.class);
 
     private final CustomOAuth2UserService customOAuth2UserService;
-
-    
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
@@ -61,27 +53,38 @@ public class SecurityCofiguration {
 
         String[] whiteList = {
                 "/",
-                "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/register",
-                "/storage/**", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password",
-                "/api/v1/auth/verify-email","/api/v1/auth/google", "/oauth2/**", "/login/oauth2/code/**", 
-                "/api/v1/auth/test-oauth", "/api/v1/auth/google-login-link", "/api/v1/auth/google-redirect","/login/**",
-                "/api/v1/profile/occasions/**" // Thêm tạm thời để debug
+                "/api/v1/auth/login",
+                "/api/v1/auth/refresh",
+                "/api/v1/auth/register",
+                "/storage/**",
+                "/api/v1/auth/forgot-password",
+                "/api/v1/auth/reset-password",
+                "/api/v1/auth/verify-email",
+                "/api/v1/auth/google",
+                "/oauth2/**",
+                "/login/oauth2/code/**",
+                "/api/v1/auth/test-oauth",
+                "/api/v1/auth/google-login-link",
+                "/api/v1/auth/google-redirect",
+                "/login/**",
+                "/api/v1/profile/occasions/**"
         };
+
         http
-                .securityMatcher("/api/**") // Chỉ áp dụng cho API
+                .securityMatcher("/api/**")
                 .csrf(c -> c.disable())
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(
-                        authz -> authz
-                                .requestMatchers(whiteList).permitAll()
-                                .requestMatchers("/api/v1/profile/**").authenticated()
-                                .anyRequest().authenticated())
-                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(whiteList).permitAll()
+                        .requestMatchers("/api/v1/files/{fileName:.+}").permitAll()
+                        .requestMatchers("/api/v1/profile/**").authenticated()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
-                .exceptionHandling(
-                        exceptions -> exceptions
-                                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-                                .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
                 .formLogin(f -> f.disable())
                 // Don't use STATELESS for the main filter chain either
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
@@ -94,27 +97,22 @@ public class SecurityCofiguration {
     public SecurityFilterChain oauth2FilterChain(HttpSecurity http) throws Exception {
         LOG.info("Xử lý yêu cầu OAuth2 cho /oauth2/** hoặc /login/oauth2/code/**");
         http
-            .securityMatcher("/oauth2/**", "/login/oauth2/code/**", "/login/**")
-            .csrf(csrf -> csrf.disable())
-            // Important: Enable sessions for OAuth2 flow
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-            .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().permitAll()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .defaultSuccessUrl("/api/v1/auth/google", true)
-                .authorizationEndpoint(authorization -> authorization
-                    .baseUri("/oauth2/authorization")
-                )
-                .redirectionEndpoint(redirection -> redirection
-                    .baseUri("/login/oauth2/code/*")
-                )
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService)
-                )
-            );
-        
+                .securityMatcher("/oauth2/**", "/login/oauth2/code/**", "/login/**")
+                .csrf(csrf -> csrf.disable())
+                // Important: Enable sessions for OAuth2 flow
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().permitAll())
+                .oauth2Login(oauth2 -> oauth2
+                        .defaultSuccessUrl("/api/v1/auth/google", true)
+                        .authorizationEndpoint(authorization -> authorization
+                                .baseUri("/oauth2/authorization"))
+                        .redirectionEndpoint(redirection -> redirection
+                                .baseUri("/login/oauth2/code/*"))
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)));
+
         return http.build();
     }
 
@@ -132,6 +130,7 @@ public class SecurityCofiguration {
     public JwtDecoder jwtDecoder() {
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(
                 getSecretKey()).macAlgorithm(SecurityUtil.JWT_ALGORITHM).build();
+
         return token -> {
             try {
                 return jwtDecoder.decode(token);
@@ -152,5 +151,4 @@ public class SecurityCofiguration {
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
     }
-
 }

@@ -30,25 +30,25 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
             Class selectedConverterType,
             ServerHttpRequest request,
             ServerHttpResponse response) {
-        HttpServletResponse servletResponse = ((ServletServerHttpResponse) response).getServletResponse();
-        int status = servletResponse.getStatus();
-
-        RestResponse<Object> res = new RestResponse<Object>();
-        res.setStatusCode(status);
 
         if (body instanceof String || body instanceof Resource) {
             return body;
         }
 
+        HttpServletResponse servletResponse = ((ServletServerHttpResponse) response).getServletResponse();
+        int status = servletResponse.getStatus();
+
         if (status >= 400) {
             return body;
-        } else {
-            res.setData(body);
-            ApiMessage message = returnType.getMethodAnnotation(ApiMessage.class);
-            res.setMessage(message != null ? message.value() : "CALL API SUCCESS");
         }
+
+        RestResponse<Object> res = new RestResponse<>();
+        res.setStatusCode(status);
+        res.setData(body);
+
+        ApiMessage message = returnType.getMethodAnnotation(ApiMessage.class);
+        res.setMessage(message != null ? message.value() : "CALL API SUCCESS");
 
         return res;
     }
-
 }

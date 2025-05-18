@@ -26,12 +26,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-    private String name;
 
     @NotBlank(message = "email không được để trống")
     private String email;
@@ -39,42 +36,39 @@ public class User {
     @NotBlank(message = "password không được để trống")
     private String password;
 
+    private String name;
     private int age;
 
     @Enumerated(EnumType.STRING)
     private GenderEnum gender;
+    
     private String address;
-
-    @Column(columnDefinition = "MEDIUMTEXT")
-    private String refreshToken;
-    private Instant createdAt;
-    private Instant updatedAt;
-    private String createdBy;
-    private String updatedBy;
-
-    @Column(name = "reset_token")
-    private String resetToken;
+    private String avatar;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
 
+    @Column(columnDefinition = "TEXT")
+    private String refreshToken;
+
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    private Instant createdAt;
+    private Instant updatedAt;
+    private String createdBy;
+    private String updatedBy;
+
     @PrePersist
     public void handleBeforeCreate() {
-        this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtil.getCurrentUserLogin().get()
-                : "";
-
+        this.createdBy = SecurityUtil.getCurrentUserLogin().orElse("");
         this.createdAt = Instant.now();
     }
 
     @PreUpdate
     public void handleBeforeUpdate() {
-        this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtil.getCurrentUserLogin().get()
-                : "";
-
+        this.updatedBy = SecurityUtil.getCurrentUserLogin().orElse("");
         this.updatedAt = Instant.now();
     }
-
 }

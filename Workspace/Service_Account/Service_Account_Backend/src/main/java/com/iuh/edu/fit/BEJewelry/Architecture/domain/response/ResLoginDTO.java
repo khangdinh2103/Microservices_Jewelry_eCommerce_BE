@@ -11,6 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class ResLoginDTO {
     @JsonProperty("access_token")
     private String accessToken;

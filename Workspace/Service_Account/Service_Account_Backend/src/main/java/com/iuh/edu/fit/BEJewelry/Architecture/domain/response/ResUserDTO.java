@@ -1,6 +1,7 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.domain.response;
 
 import java.time.Instant;
+
 import com.iuh.edu.fit.BEJewelry.Architecture.util.constant.GenderEnum;
 
 import lombok.AllArgsConstructor;
@@ -17,11 +18,12 @@ public class ResUserDTO {
     private String email;
     private String name;
     private GenderEnum gender;
-    private String address;
     private int age;
-    private Instant updatedAt;
+    private String address;
+    private String avatar;
+    private String avatarUrl;
     private Instant createdAt;
-
+    private Instant updatedAt;
     private RoleUser role;
 
     @Getter

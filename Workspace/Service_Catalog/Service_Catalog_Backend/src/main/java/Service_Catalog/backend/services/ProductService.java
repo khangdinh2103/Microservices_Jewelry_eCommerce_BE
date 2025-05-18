@@ -5,7 +5,9 @@ import Service_Catalog.backend.entities.ProductSalesSummary;
 import Service_Catalog.backend.repositories.ProductRepository;
 import Service_Catalog.backend.repositories.ProductSalesSummaryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -20,6 +22,12 @@ public class ProductService {
     @Autowired
     private ProductSalesSummaryRepository productSalesSummaryRepository;
 
+    @Autowired 
+    private RedisTemplate<String, Object> redisTemplate;
+    
+    private static final String CACHE_KEY_PRODUCT = "product";
+    private static final long CACHE_TTL = 3600;
+    
     public Product addProduct(Product product) {
         product.setCreatedAt(Instant.now());
         product.setUpdatedAt(Instant.now());
@@ -37,6 +45,7 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @Cacheable(value = CACHE_KEY_PRODUCT, key = "#id")
     public Product getProductById(Integer id) {
         return productRepository.findById(id).orElse(null);
     }
@@ -49,6 +58,7 @@ public class ProductService {
         return productRepository.findAllById(ids);
     }
 
+    @Cacheable(value = CACHE_KEY_PRODUCT, key = "'category_' + #categoryId")
     public List<Product> getAllByCategoryId(Integer categoryId) {
         return productRepository.findAllByCategoryId(categoryId);
     }

@@ -264,7 +264,7 @@ public class AuthController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDTO, HttpServletRequest request) {
+    public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDTO, HttpServletRequest request) throws IdInvalidException {
         // Get client IP address
         String clientIp = request.getRemoteAddr();
 
@@ -319,7 +319,7 @@ public class AuthController {
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, resCookies.toString()).body(res);
         } catch (BadCredentialsException e) {
             // Even if authentication fails, we still count it as an attempt
-            throw new RuntimeException("Email hoặc mật khẩu không đúng");
+            throw new IdInvalidException("Email hoặc mật khẩu không đúng");
         }
     }
 

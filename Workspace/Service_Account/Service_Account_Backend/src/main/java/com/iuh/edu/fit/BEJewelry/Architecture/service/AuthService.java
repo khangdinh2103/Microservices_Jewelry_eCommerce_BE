@@ -1,20 +1,18 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.service;
 
-import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.Optional;
-
+import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
+import com.iuh.edu.fit.BEJewelry.Architecture.repository.UserRepository;
+import com.iuh.edu.fit.BEJewelry.Architecture.util.error.PermissionException;
+import jakarta.mail.MessagingException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
-import com.iuh.edu.fit.BEJewelry.Architecture.repository.UserRepository;
-import com.iuh.edu.fit.BEJewelry.Architecture.util.error.PermissionException;
-
-import jakarta.mail.MessagingException;
-import lombok.RequiredArgsConstructor;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

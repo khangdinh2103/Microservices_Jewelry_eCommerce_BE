@@ -1,26 +1,5 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.controller;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.iuh.edu.fit.BEJewelry.Architecture.config.RateLimiterConfig;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
@@ -40,15 +19,31 @@ import com.iuh.edu.fit.BEJewelry.Architecture.util.error.exception.RateLimitExce
 
 import io.github.bucket4j.Bucket;
 
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -67,7 +62,8 @@ public class AuthController {
     private String frontendUrl;
 
     public AuthController(AuthenticationManagerBuilder authenticationManagerBuilder, SecurityUtil securityUtil,
-            UserService userService, PasswordEncoder passwordEncoder, AuthService authService, RateLimiterConfig rateLimiterConfig) {
+            UserService userService, PasswordEncoder passwordEncoder, AuthService authService,
+            RateLimiterConfig rateLimiterConfig) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.securityUtil = securityUtil;
         this.userService = userService;
@@ -181,28 +177,22 @@ public class AuthController {
             // Redirect to frontend application for browser navigation
             HttpHeaders headers = new HttpHeaders();
 
-            try {
-                // Create a URL with user information and URL encode the name to handle special
-                // characters
-                String redirectUrl = frontendUrl +
-                // Add a specific path for handling login success
-                        "?token=" + access_token +
-                        "&userId=" + currentUserDB.getId() +
-                        "&email=" + java.net.URLEncoder.encode(currentUserDB.getEmail(), "UTF-8") +
-                        "&name=" + java.net.URLEncoder.encode(currentUserDB.getName(), "UTF-8");
+            // Create a URL with user information and URL encode the name to handle special
+            // characters
+            String redirectUrl = frontendUrl +
+            // Add a specific path for handling login success
+                    "?token=" + access_token +
+                    "&userId=" + currentUserDB.getId() +
+                    "&email=" + java.net.URLEncoder.encode(currentUserDB.getEmail(), StandardCharsets.UTF_8) +
+                    "&name=" + java.net.URLEncoder.encode(currentUserDB.getName(), StandardCharsets.UTF_8);
 
-                // Add role if available
-                if (currentUserDB.getRole() != null) {
-                    redirectUrl += "&role=" + currentUserDB.getRole().getName();
-                }
-
-                System.out.println("Redirecting to: " + redirectUrl);
-                headers.add("Location", redirectUrl);
-            } catch (java.io.UnsupportedEncodingException e) {
-                System.out.println("Error encoding URL parameters: " + e.getMessage());
-                // Fallback to a simpler URL if encoding fails
-                headers.add("Location", frontendUrl + "/login/success?token=" + access_token);
+            // Add role if available
+            if (currentUserDB.getRole() != null) {
+                redirectUrl += "&role=" + currentUserDB.getRole().getName();
             }
+
+            System.out.println("Redirecting to: " + redirectUrl);
+            headers.add("Location", redirectUrl);
 
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header(HttpHeaders.SET_COOKIE, resCookies.toString())
@@ -274,7 +264,7 @@ public class AuthController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDTO, HttpServletRequest request) {
+    public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody ReqLoginDTO loginDTO, HttpServletRequest request) throws IdInvalidException {
         // Get client IP address
         String clientIp = request.getRemoteAddr();
 
@@ -329,10 +319,10 @@ public class AuthController {
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, resCookies.toString()).body(res);
         } catch (BadCredentialsException e) {
             // Even if authentication fails, we still count it as an attempt
-            throw new RuntimeException("Email hoặc mật khẩu không đúng");
+            throw new IdInvalidException("Email hoặc mật khẩu không đúng");
         }
     }
-  
+
     @GetMapping("/auth/account")
     @ApiMessage("fetch account")
     public ResponseEntity<ResLoginDTO.UserGetAccount> getAccount() {
@@ -344,7 +334,7 @@ public class AuthController {
         // This was in the second branch but implementation details were missing
         return null; // Replace with proper implementation
     }
-  
+
     @GetMapping("/auth/refresh")
     @ApiMessage("Get User by refresh token")
     public ResponseEntity<ResLoginDTO> getRefreshToken(

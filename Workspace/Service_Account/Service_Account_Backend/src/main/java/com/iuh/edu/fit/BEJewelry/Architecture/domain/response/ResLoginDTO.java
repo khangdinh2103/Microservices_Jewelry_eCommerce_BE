@@ -2,7 +2,6 @@ package com.iuh.edu.fit.BEJewelry.Architecture.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +16,7 @@ public class ResLoginDTO {
     private String accessToken;
     private UserLogin user;
     private String error;
-    
+
     // Constructor for error responses
     public ResLoginDTO(String errorMessage) {
         this.error = errorMessage;

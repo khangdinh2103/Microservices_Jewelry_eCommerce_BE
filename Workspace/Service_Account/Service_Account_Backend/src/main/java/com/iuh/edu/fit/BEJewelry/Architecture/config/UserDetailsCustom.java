@@ -1,14 +1,13 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.config;
 
-import java.util.Collections;
-
+import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.iuh.edu.fit.BEJewelry.Architecture.service.UserService;
+import java.util.Collections;
 
 @Component("userDetailsService")
 public class UserDetailsCustom implements UserDetailsService {

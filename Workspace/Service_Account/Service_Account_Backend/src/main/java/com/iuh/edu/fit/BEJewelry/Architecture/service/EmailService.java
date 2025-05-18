@@ -1,15 +1,14 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,12 +17,10 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 @Slf4j
 public class EmailService {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final JavaMailSender mailSender;
-    
     @Value("${spring.mail.username:no-reply@jewelry.com}")
     private String fromEmail;
-
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public void sendSimpleEmail(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
@@ -32,20 +29,20 @@ public class EmailService {
         message.setText(text);
         mailSender.send(message);
     }
-    
+
     public void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        
+
         helper.setFrom(fromEmail);
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(htmlContent, true); // true indicates HTML content
-        
+
         mailSender.send(message);
     }
 
-    
+
     public void sendResetPasswordEmail(String to, String resetLink) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -58,27 +55,27 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendOccasionReminderEmail(String to, String userName, String occasionName, 
-                                         LocalDate occasionDate, String recipientName, 
-                                         String relationship, String giftPreferences) throws MessagingException {
+    public void sendOccasionReminderEmail(String to, String userName, String occasionName,
+                                          LocalDate occasionDate, String recipientName,
+                                          String relationship, String giftPreferences) throws MessagingException {
         String subject = "Nhắc nhở: " + occasionName + " sắp đến!";
-        
-        log.info("Preparing to send reminder email to: {}, for occasion: {}, date: {}", 
+
+        log.info("Preparing to send reminder email to: {}, for occasion: {}, date: {}",
                 to, occasionName, occasionDate);
-        
-        String htmlContent = buildOccasionReminderEmailTemplate(userName, occasionName, 
-                                                              occasionDate, recipientName, 
-                                                              relationship, giftPreferences);
-        
+
+        String htmlContent = buildOccasionReminderEmailTemplate(userName, occasionName,
+                occasionDate, recipientName,
+                relationship, giftPreferences);
+
         sendHtmlEmail(to, subject, htmlContent);
         log.info("Successfully sent email reminder to: {}", to);
     }
-    
-    private String buildOccasionReminderEmailTemplate(String userName, String occasionName, 
-                                                    LocalDate occasionDate, String recipientName, 
-                                                    String relationship, String giftPreferences) {
+
+    private String buildOccasionReminderEmailTemplate(String userName, String occasionName,
+                                                      LocalDate occasionDate, String recipientName,
+                                                      String relationship, String giftPreferences) {
         StringBuilder html = new StringBuilder();
-        
+
         html.append("<!DOCTYPE html>");
         html.append("<html>");
         html.append("<head>");
@@ -93,27 +90,27 @@ public class EmailService {
         html.append("</style>");
         html.append("</head>");
         html.append("<body>");
-        
+
         // Header
         html.append("<div class=\"header\">");
         html.append("<h1>Nhắc nhở dịp đặc biệt</h1>");
         html.append("</div>");
-        
+
         // Content
         html.append("<div class=\"content\">");
         html.append("<p>Xin chào ").append(userName).append(",</p>");
-        
+
         html.append("<p>Chúng tôi muốn nhắc bạn rằng <span class=\"highlight\">").append(occasionName).append("</span>");
-        
+
         if (recipientName != null && !recipientName.isEmpty()) {
             html.append(" của <span class=\"highlight\">").append(recipientName).append("</span>");
             if (relationship != null && !relationship.isEmpty()) {
                 html.append(" (").append(relationship).append(")");
             }
         }
-        
+
         html.append(" sẽ diễn ra vào ngày <span class=\"highlight\">").append(occasionDate.format(DATE_FORMATTER)).append("</span>.</p>");
-        
+
         // Gift preferences if available
         if (giftPreferences != null && !giftPreferences.isEmpty()) {
             html.append("<div class=\"gift-ideas\">");
@@ -121,20 +118,20 @@ public class EmailService {
             html.append("<p>").append(giftPreferences).append("</p>");
             html.append("</div>");
         }
-        
+
         html.append("<p>Hãy chuẩn bị để làm cho ngày đặc biệt này thật ý nghĩa!</p>");
-        
+
         html.append("<p>Trân trọng,<br>Đội ngũ Jewelry</p>");
         html.append("</div>");
-        
+
         // Footer
         html.append("<div class=\"footer\">");
         html.append("<p>Email này được gửi tự động từ hệ thống nhắc nhở dịp đặc biệt của Jewelry.</p>");
         html.append("</div>");
-        
+
         html.append("</body>");
         html.append("</html>");
-        
+
         return html.toString();
     }
 }

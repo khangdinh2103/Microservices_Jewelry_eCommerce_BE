@@ -1,14 +1,5 @@
 package com.iuh.edu.fit.BEJewelry.Architecture.config;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Permission;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.Role;
 import com.iuh.edu.fit.BEJewelry.Architecture.domain.User;
@@ -16,6 +7,14 @@ import com.iuh.edu.fit.BEJewelry.Architecture.repository.PermissionRepository;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.RoleRepository;
 import com.iuh.edu.fit.BEJewelry.Architecture.repository.UserRepository;
 import com.iuh.edu.fit.BEJewelry.Architecture.util.constant.GenderEnum;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class DatabaseInitializer implements CommandLineRunner {

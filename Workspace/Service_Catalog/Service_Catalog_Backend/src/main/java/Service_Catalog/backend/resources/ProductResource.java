@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,16 +49,17 @@ public class ProductResource {
     }
 
     @GetMapping("/{id}")
-    public ProductDto showProductDetail(@PathVariable Integer id) {
-        return convertToDto(productService.getProductById(id));
+    public ResponseEntity<ProductDto> showProductDetail(@PathVariable Integer id) {
+        ProductDto productDto = productService.getProductById(id);
+        if (productDto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(productDto);
     }
 
     @GetMapping("/category/{categoryId}")
     public List<ProductDto> showProductListByCategory(@PathVariable Integer categoryId) {
-        List<Product> products = productService.getAllByCategoryId(categoryId);
-        return products.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        return productService.getAllByCategoryIdDto(categoryId);
     }
 
     @GetMapping("/category/{categoryId}/brands")

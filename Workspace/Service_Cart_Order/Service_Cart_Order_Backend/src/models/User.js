@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/Database');
 
-const UserRoleEnum = ['ADMIN', 'USER', 'MODERATOR'];
+const UserRoleEnum = ['ADMIN', 'USER', 'MANAGER', 'DELIVERER'];
 const UserStateEnum = ['ACTIVE', 'INACTIVE', 'BANNED'];
 
 const User = sequelize.define('User', {

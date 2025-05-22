@@ -56,6 +56,10 @@ const Product = sequelize.define('Product', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    view_count: { // Thêm view_count để đồng bộ
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
     category_id: { // Đổi từ category thành category_id
         type: DataTypes.INTEGER,
         allowNull: true,

@@ -44,7 +44,10 @@ public class User {
     @Column(name = "reset_token")
     private String resetToken;
 
+    @Column(nullable = true)
     private Instant createdAt;
+
+    @Column(nullable = true)
     private Instant updatedAt;
     private String createdBy;
     private String updatedBy;
@@ -53,6 +56,8 @@ public class User {
     public void handleBeforeCreate() {
         this.createdBy = SecurityUtil.getCurrentUserLogin().orElse("");
         this.createdAt = Instant.now();
+        this.updatedBy = SecurityUtil.getCurrentUserLogin().orElse("");
+        this.updatedAt = Instant.now();
     }
 
     @PreUpdate

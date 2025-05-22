@@ -66,12 +66,13 @@ const User = sequelize.define('User', {
     },
     created_at: {
         type: DataTypes.DATE,
-        allowNull: false,
+        allowNull: true,
         defaultValue: DataTypes.NOW,
     },
     updated_at: {
         type: DataTypes.DATE,
-        allowNull: true, // Chỉnh sửa từ false thành true
+        allowNull: true,
+        defaultValue: DataTypes.NOW,
     },
     created_by: {
         type: DataTypes.STRING,

@@ -78,7 +78,6 @@ public class Product {
     @JsonIgnoreProperties({"products"})
     private Collection collection;
 
-
     @Column(name = "size")
     private String size;
 

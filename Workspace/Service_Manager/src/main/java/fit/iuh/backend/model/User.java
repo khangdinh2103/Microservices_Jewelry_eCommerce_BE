@@ -5,6 +5,7 @@ import fit.iuh.backend.common.UserState;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,11 +27,12 @@ public class User {
     private String address; // Đổi từ addresses
     private String avatar; // Đổi từ profileImageURL
 
+    @Column(columnDefinition = "TEXT")
     private String refreshToken; // Thêm refresh_token
     private String resetToken; // Thêm reset_token
     
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     private String createdBy; // Thêm created_by
     private String updatedBy; // Thêm updated_by
 

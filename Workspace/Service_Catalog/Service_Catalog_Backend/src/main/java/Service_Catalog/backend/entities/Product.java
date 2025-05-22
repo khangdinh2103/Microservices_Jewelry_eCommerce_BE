@@ -82,6 +82,9 @@ public class Product {
     @Column(name = "size")
     private String size;
 
+    @Column(name = "view_count")
+    private Integer viewCount;
+
     @OneToMany(mappedBy = "product")
     @JsonIgnore
     private List<Review> reviews = new ArrayList<>();

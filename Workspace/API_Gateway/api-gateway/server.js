@@ -22,6 +22,18 @@ const logger = winston.createLogger({
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Service hostnames with fallbacks to localhost
+const ACCOUNT_SERVICE_HOST = process.env.ACCOUNT_SERVICE_HOST || 'localhost';
+const MANAGER_SERVICE_HOST = process.env.MANAGER_SERVICE_HOST || 'localhost';
+const CATALOG_SERVICE_HOST = process.env.CATALOG_SERVICE_HOST || 'localhost';
+const CART_ORDER_SERVICE_HOST = process.env.CART_ORDER_SERVICE_HOST || 'localhost';
+
+// Log service configurations
+logger.info(`Using Account Service at: ${ACCOUNT_SERVICE_HOST}:8001`);
+logger.info(`Using Manager Service at: ${MANAGER_SERVICE_HOST}:8003`);
+logger.info(`Using Catalog Service at: ${CATALOG_SERVICE_HOST}:8005`);
+logger.info(`Using Cart/Order Service at: ${CART_ORDER_SERVICE_HOST}:8006`);
+
 // Enable CORS
 app.use(cors());
 
@@ -71,7 +83,7 @@ app.get('/health', (req, res) => {
 app.use(
     '/api/v1/account',
     createProxyMiddleware({
-        target: 'http://localhost:8001/api/v1',
+        target: `http://${ACCOUNT_SERVICE_HOST}:8001/api/v1`,
         changeOrigin: true,
         pathRewrite: {
             '^/api/v1/account': '', // Remove the /api/v1/account prefix when forwarding
@@ -89,7 +101,7 @@ app.use(
 app.use(
     '/api/v1/manager',
     createProxyMiddleware({
-        target: 'http://localhost:8003',
+        target: `http://${MANAGER_SERVICE_HOST}:8003`,
         changeOrigin: true,
         pathRewrite: {
             '^/api/v1/manager': '', // Remove the /api/v1/manager prefix when forwarding
@@ -107,7 +119,7 @@ app.use(
 app.use(
     '/api/v1/catalog',
     createProxyMiddleware({
-        target: 'http://localhost:8005/api',
+        target: `http://${CATALOG_SERVICE_HOST}:8005/api`,
         changeOrigin: true,
         pathRewrite: {
             '^/api/v1/catalog': '', // Remove the /api/v1/catalog prefix when forwarding
@@ -125,7 +137,7 @@ app.use(
 app.use(
     '/api/v1/cart-order',
     createProxyMiddleware({
-        target: 'http://localhost:8006/api',
+        target: `http://${CART_ORDER_SERVICE_HOST}:8006/api`,
         changeOrigin: true,
         pathRewrite: {
             '^/api/v1/cart-order': '', // Remove the /api/v1/cart-order prefix when forwarding

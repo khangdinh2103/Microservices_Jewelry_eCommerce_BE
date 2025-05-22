@@ -137,6 +137,10 @@ services:
             - service-cart-order
         environment:
             - PORT=8000
+            - ACCOUNT_SERVICE_HOST=service-account
+            - MANAGER_SERVICE_HOST=service-manager
+            - CATALOG_SERVICE_HOST=service-catalog
+            - CART_ORDER_SERVICE_HOST=service-cart-order
         volumes:
             - ./API_Gateway/api-gateway:/app
             - api-gateway-node_modules:/app/node_modules

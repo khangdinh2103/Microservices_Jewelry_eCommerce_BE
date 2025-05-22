@@ -45,7 +45,8 @@ public class ProductServiceImpl implements ProductService {
     private final ProductImageRepository productImageRepository;
 
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository, CollectionRepository collectionRepository, ProductImageRepository productImageRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository,
+            CollectionRepository collectionRepository, ProductImageRepository productImageRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.collectionRepository = collectionRepository;
@@ -74,12 +75,13 @@ public class ProductServiceImpl implements ProductService {
 
         List<ProductResponse> productList = products.stream()
                 .map(product -> {
-                    List<ImageResponse> imageResponses = product.getImageSet().stream()
-                            .filter(image -> image.getIsPrimary())
-                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(), image.getSortOrder()))
-                            .collect(Collectors.toList());
+                    List<ImageResponse> imageResponses = product.getImageSet() != null ? product.getImageSet().stream()
+                            .filter(image -> image != null && image.getIsPrimary() != null && image.getIsPrimary())
+                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(),
+                                    image.getSortOrder()))
+                            .collect(Collectors.toList()) : new ArrayList<>();
 
-                    return ProductResponse.builder()
+                    ProductResponse.ProductResponseBuilder builder = ProductResponse.builder()
                             .productId(product.getId())
                             .name(product.getName())
                             .code(product.getCode())
@@ -94,12 +96,20 @@ public class ProductServiceImpl implements ProductService {
                             .brand(product.getBrand())
                             .size(product.getSize())
                             .viewCount(product.getViewCount())
-                            .categoryId(product.getCategory().getCategoryId())
-                            .collectionId(product.getCollection().getCollectionId())
                             .imageSet(imageResponses)
                             .createdAt(product.getCreatedAt())
-                            .updatedAt(product.getUpdatedAt())
-                            .build();
+                            .updatedAt(product.getUpdatedAt());
+
+                    // Safe null checks for category and collection
+                    if (product.getCategory() != null) {
+                        builder.categoryId(product.getCategory().getCategoryId());
+                    }
+
+                    if (product.getCollection() != null) {
+                        builder.collectionId(product.getCollection().getCollectionId());
+                    }
+
+                    return builder.build();
                 })
                 .toList();
         ProductPageResponse response = new ProductPageResponse();
@@ -115,10 +125,13 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new OpenApiResourceNotFoundException("Product not found with id: " + id));
-        List<ImageResponse> imageResponses = product.getImageSet().stream()
-                .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(), image.getSortOrder()))
-                .collect(Collectors.toList());
-        return ProductResponse.builder()
+
+        List<ImageResponse> imageResponses = product.getImageSet() != null ? product.getImageSet().stream()
+                .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(),
+                        image.getSortOrder()))
+                .collect(Collectors.toList()) : new ArrayList<>();
+
+        ProductResponse.ProductResponseBuilder builder = ProductResponse.builder()
                 .productId(product.getId())
                 .name(product.getName())
                 .code(product.getCode())
@@ -133,13 +146,21 @@ public class ProductServiceImpl implements ProductService {
                 .brand(product.getBrand())
                 .size(product.getSize())
                 .viewCount(product.getViewCount())
-                .categoryId(product.getCategory().getCategoryId())
-                .collectionId(product.getCollection().getCollectionId())
                 .imageSet(imageResponses)
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
-                .reviews(product.getReviews())
-                .build();
+                .reviews(product.getReviews());
+
+        // Safe null checks for category and collection
+        if (product.getCategory() != null) {
+            builder.categoryId(product.getCategory().getCategoryId());
+        }
+
+        if (product.getCollection() != null) {
+            builder.collectionId(product.getCollection().getCollectionId());
+        }
+
+        return builder.build();
     }
 
     @Override
@@ -163,11 +184,13 @@ public class ProductServiceImpl implements ProductService {
         product.setViewCount(req.getViewCount() != null ? req.getViewCount() : 0);
 
         Category category = categoryRepository.findById(req.getCategoryId())
-                .orElseThrow(() -> new OpenApiResourceNotFoundException("Category not found with id: " + req.getCategoryId()));
+                .orElseThrow(() -> new OpenApiResourceNotFoundException(
+                        "Category not found with id: " + req.getCategoryId()));
         product.setCategory(category);
 
         Collection collection = collectionRepository.findById(req.getCollectionId())
-                .orElseThrow(() -> new OpenApiResourceNotFoundException("Collection not found with id: " + req.getCollectionId()));
+                .orElseThrow(() -> new OpenApiResourceNotFoundException(
+                        "Collection not found with id: " + req.getCollectionId()));
         product.setCollection(collection);
 
         LocalDateTime now = LocalDateTime.now();
@@ -226,13 +249,15 @@ public class ProductServiceImpl implements ProductService {
 
         if (!product.getCategory().getCategoryId().equals(req.getCategoryId())) {
             Category category = categoryRepository.findById(req.getCategoryId())
-                    .orElseThrow(() -> new OpenApiResourceNotFoundException("Category not found with id: " + req.getCategoryId()));
+                    .orElseThrow(() -> new OpenApiResourceNotFoundException(
+                            "Category not found with id: " + req.getCategoryId()));
             product.setCategory(category);
         }
 
         if (!product.getCollection().getCollectionId().equals(req.getCollectionId())) {
             Collection collection = collectionRepository.findById(req.getCollectionId())
-                    .orElseThrow(() -> new OpenApiResourceNotFoundException("Collection not found with id: " + req.getCollectionId()));
+                    .orElseThrow(() -> new OpenApiResourceNotFoundException(
+                            "Collection not found with id: " + req.getCollectionId()));
             product.setCollection(collection);
         }
 
@@ -260,7 +285,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
         log.info("Successfully deleted product with id: {}", productId);
     }
-    
+
     @Override
     public ProductPageResponse getOutOfStockProducts(int page, int size) {
         int pageNo = 0;
@@ -273,11 +298,12 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> products = productRepository.findByQuantityEquals(0, pageable);
         List<ProductResponse> productList = products.stream()
                 .map(product -> {
-                    List<ImageResponse> imageResponses = product.getImageSet().stream()
-                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(), image.getSortOrder()))
-                            .collect(Collectors.toList());
-                    
-                    return ProductResponse.builder()
+                    List<ImageResponse> imageResponses = product.getImageSet() != null ? product.getImageSet().stream()
+                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(),
+                                    image.getSortOrder()))
+                            .collect(Collectors.toList()) : new ArrayList<>();
+
+                    ProductResponse.ProductResponseBuilder builder = ProductResponse.builder()
                             .productId(product.getId())
                             .name(product.getName())
                             .code(product.getCode())
@@ -292,12 +318,20 @@ public class ProductServiceImpl implements ProductService {
                             .brand(product.getBrand())
                             .size(product.getSize())
                             .viewCount(product.getViewCount())
-                            .categoryId(product.getCategory().getCategoryId())
-                            .collectionId(product.getCollection().getCollectionId())
                             .imageSet(imageResponses)
                             .createdAt(product.getCreatedAt())
-                            .updatedAt(product.getUpdatedAt())
-                            .build();
+                            .updatedAt(product.getUpdatedAt());
+
+                    // Safe null checks for category and collection
+                    if (product.getCategory() != null) {
+                        builder.categoryId(product.getCategory().getCategoryId());
+                    }
+
+                    if (product.getCollection() != null) {
+                        builder.collectionId(product.getCollection().getCollectionId());
+                    }
+
+                    return builder.build();
                 })
                 .toList();
         ProductPageResponse response = new ProductPageResponse();
@@ -308,7 +342,7 @@ public class ProductServiceImpl implements ProductService {
         response.setProducts(productList);
         return response;
     }
-    
+
     @Override
     public ProductPageResponse getLowStockProducts(int threshold, int page, int size) {
         int pageNo = 0;
@@ -320,11 +354,12 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> products = productRepository.findByQuantityLessThanEqual(threshold, pageable);
         List<ProductResponse> productList = products.stream()
                 .map(product -> {
-                    List<ImageResponse> imageResponses = product.getImageSet().stream()
-                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(), image.getSortOrder()))
-                            .collect(Collectors.toList());
-                    
-                    return ProductResponse.builder()
+                    List<ImageResponse> imageResponses = product.getImageSet() != null ? product.getImageSet().stream()
+                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(),
+                                    image.getSortOrder()))
+                            .collect(Collectors.toList()) : new ArrayList<>();
+
+                    ProductResponse.ProductResponseBuilder builder = ProductResponse.builder()
                             .productId(product.getId())
                             .name(product.getName())
                             .code(product.getCode())
@@ -339,12 +374,20 @@ public class ProductServiceImpl implements ProductService {
                             .brand(product.getBrand())
                             .size(product.getSize())
                             .viewCount(product.getViewCount())
-                            .categoryId(product.getCategory().getCategoryId())
-                            .collectionId(product.getCollection().getCollectionId())
                             .imageSet(imageResponses)
                             .createdAt(product.getCreatedAt())
-                            .updatedAt(product.getUpdatedAt())
-                            .build();
+                            .updatedAt(product.getUpdatedAt());
+
+                    // Safe null checks for category and collection
+                    if (product.getCategory() != null) {
+                        builder.categoryId(product.getCategory().getCategoryId());
+                    }
+
+                    if (product.getCollection() != null) {
+                        builder.collectionId(product.getCollection().getCollectionId());
+                    }
+
+                    return builder.build();
                 })
                 .toList();
         ProductPageResponse response = new ProductPageResponse();
@@ -355,7 +398,7 @@ public class ProductServiceImpl implements ProductService {
         response.setProducts(productList);
         return response;
     }
-    
+
     @Override
     @Transactional
     public Long updateProductStock(Long productId, int newStock) {
@@ -417,11 +460,13 @@ public class ProductServiceImpl implements ProductService {
                     product.setUpdatedAt(LocalDateTime.now());
 
                     Category category = categoryRepository.findById(Long.parseLong(data[9].trim()))
-                            .orElseThrow(() -> new OpenApiResourceNotFoundException("Category not found: " + data[9].trim()));
+                            .orElseThrow(() -> new OpenApiResourceNotFoundException(
+                                    "Category not found: " + data[9].trim()));
                     product.setCategory(category);
 
                     Collection collection = collectionRepository.findById(Long.parseLong(data[10].trim()))
-                            .orElseThrow(() -> new OpenApiResourceNotFoundException("Collection not found: " + data[10].trim()));
+                            .orElseThrow(() -> new OpenApiResourceNotFoundException(
+                                    "Collection not found: " + data[10].trim()));
                     product.setCollection(collection);
 
                     productRepository.save(product);
@@ -444,10 +489,11 @@ public class ProductServiceImpl implements ProductService {
             log.info("Successfully imported {} products from CSV", lineCount);
         }
     }
-    
+
     @Override
     @Transactional
-    public List<Long> addImagesToProduct(Long productId, List<ImageRequest> imageRequests) throws OpenApiResourceNotFoundException {
+    public List<Long> addImagesToProduct(Long productId, List<ImageRequest> imageRequests)
+            throws OpenApiResourceNotFoundException {
         log.info("Adding {} images to product id: {}", imageRequests.size(), productId);
 
         Product product = productRepository.findById(productId)
@@ -496,13 +542,13 @@ public class ProductServiceImpl implements ProductService {
 
         log.info("Deleted image id: {} from product id: {}", imageId, productId);
     }
-    
+
     // Helper method to generate product code from name
     private String generateProductCode(String name) {
         if (name == null || name.isEmpty()) {
             return "PRD" + System.currentTimeMillis();
         }
-        
+
         // Create code from first letters of each word + timestamp
         StringBuilder code = new StringBuilder("JEC-");
         String[] words = name.split("\\s+");
@@ -511,10 +557,10 @@ public class ProductServiceImpl implements ProductService {
                 code.append(Character.toUpperCase(word.charAt(0)));
             }
         }
-        
+
         // Add timestamp to ensure uniqueness
         code.append("-").append(System.currentTimeMillis() % 10000);
-        
+
         return code.toString();
     }
 }

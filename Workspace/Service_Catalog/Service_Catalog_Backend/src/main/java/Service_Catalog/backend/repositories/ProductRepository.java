@@ -1,6 +1,8 @@
 package Service_Catalog.backend.repositories;
 
 import Service_Catalog.backend.entities.Product;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,7 +44,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
         List<Product> findSimilarProducts(@Param("productId") Integer productId,
                         @Param("collectionId") Integer collectionId,
                         @Param("brand") String brand,
-                        @Param("categoryId") Integer categoryId);
+                        @Param("categoryId") Integer categoryId,
+                        Pageable pageable);
+                        
+        @Query("SELECT p FROM Product p ORDER BY p.createdAt DESC")                
+        List<Product> getNewArrivalsProducts(Pageable pageable);
 
         List<Product> findByPriceLessThanEqual(Double maxPrice);
 

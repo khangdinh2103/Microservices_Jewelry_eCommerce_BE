@@ -5,9 +5,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import Service_Catalog.backend.dto.ProductDto;
@@ -47,16 +49,17 @@ public class ProductResource {
     }
 
     @GetMapping("/{id}")
-    public ProductDto showProductDetail(@PathVariable Integer id) {
-        return convertToDto(productService.getProductById(id));
+    public ResponseEntity<ProductDto> showProductDetail(@PathVariable Integer id) {
+        ProductDto productDto = productService.getProductById(id);
+        if (productDto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(productDto);
     }
 
     @GetMapping("/category/{categoryId}")
     public List<ProductDto> showProductListByCategory(@PathVariable Integer categoryId) {
-        List<Product> products = productService.getAllByCategoryId(categoryId);
-        return products.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        return productService.getAllByCategoryIdDto(categoryId);
     }
 
     @GetMapping("/category/{categoryId}/brands")
@@ -100,10 +103,19 @@ public class ProductResource {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/{id}/similar")
-    public List<ProductDto> showSimilarProduct(@PathVariable Integer id) {
-        List<Product> products = productService.getSimilarProducts(id);
+    @GetMapping("/new-arrivals")
+    public List<ProductDto> showNewArrivalsProduct(@RequestParam(defaultValue = "4") Integer limit) {
+        List<Product> products = productService.getNewArrivalsProducts(limit);
         return products.stream()
+               .map(this::convertToDto)
+               .collect(Collectors.toList()); 
+    }
+
+    @GetMapping("/{id}/related")
+    public List<ProductDto> showSimilarProduct(@PathVariable Integer id, @RequestParam(defaultValue = "4") Integer limit) {
+        List<Product> products = productService.getSimilarProducts(id, limit);
+        return products.stream()
+                .limit(limit)
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }

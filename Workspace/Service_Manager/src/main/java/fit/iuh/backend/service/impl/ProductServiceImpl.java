@@ -76,20 +76,23 @@ public class ProductServiceImpl implements ProductService {
                 .map(product -> {
                     List<ImageResponse> imageResponses = product.getImageSet().stream()
                             .filter(image -> image.getIsPrimary())
-                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary()))
+                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(), image.getSortOrder()))
                             .collect(Collectors.toList());
 
                     return ProductResponse.builder()
                             .productId(product.getId())
                             .name(product.getName())
+                            .code(product.getCode())
                             .description(product.getDescription())
                             .stock(product.getQuantity())
                             .price(product.getPrice())
+                            .status(product.getStatus())
                             .gender(product.getGender())
                             .material(product.getMaterial())
                             .goldKarat(product.getGoldKarat())
                             .color(product.getColor())
                             .brand(product.getBrand())
+                            .size(product.getSize())
                             .viewCount(product.getViewCount())
                             .categoryId(product.getCategory().getCategoryId())
                             .collectionId(product.getCollection().getCollectionId())
@@ -113,19 +116,22 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new OpenApiResourceNotFoundException("Product not found with id: " + id));
         List<ImageResponse> imageResponses = product.getImageSet().stream()
-                .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary()))
+                .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(), image.getSortOrder()))
                 .collect(Collectors.toList());
         return ProductResponse.builder()
                 .productId(product.getId())
                 .name(product.getName())
+                .code(product.getCode())
                 .description(product.getDescription())
                 .stock(product.getQuantity())
                 .price(product.getPrice())
+                .status(product.getStatus())
                 .gender(product.getGender())
                 .material(product.getMaterial())
                 .goldKarat(product.getGoldKarat())
                 .color(product.getColor())
                 .brand(product.getBrand())
+                .size(product.getSize())
                 .viewCount(product.getViewCount())
                 .categoryId(product.getCategory().getCategoryId())
                 .collectionId(product.getCollection().getCollectionId())
@@ -143,17 +149,18 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = new Product();
         product.setName(req.getName());
-        product.setCode(generateProductCode(req.getName())); // Add code generation
+        product.setCode(req.getCode() != null ? req.getCode() : generateProductCode(req.getName()));
         product.setDescription(req.getDescription());
-        product.setQuantity(req.getStock()); // Changed from setStock to setQuantity
+        product.setQuantity(req.getStock());
         product.setPrice(req.getPrice());
-        product.setStatus("ACTIVE"); // Set default status
+        product.setStatus(req.getStatus() != null ? req.getStatus() : "ACTIVE");
         product.setGender(req.getGender());
         product.setMaterial(req.getMaterial());
         product.setGoldKarat(req.getGoldKarat());
         product.setColor(req.getColor());
         product.setBrand(req.getBrand());
-        product.setViewCount(0);
+        product.setSize(req.getSize());
+        product.setViewCount(req.getViewCount() != null ? req.getViewCount() : 0);
 
         Category category = categoryRepository.findById(req.getCategoryId())
                 .orElseThrow(() -> new OpenApiResourceNotFoundException("Category not found with id: " + req.getCategoryId()));
@@ -164,8 +171,8 @@ public class ProductServiceImpl implements ProductService {
         product.setCollection(collection);
 
         LocalDateTime now = LocalDateTime.now();
-        product.setCreatedAt(now);
-        product.setUpdatedAt(now);
+        product.setCreatedAt(req.getCreatedAt() != null ? req.getCreatedAt() : now);
+        product.setUpdatedAt(req.getUpdatedAt() != null ? req.getUpdatedAt() : now);
 
         productRepository.save(product);
 
@@ -174,9 +181,9 @@ public class ProductServiceImpl implements ProductService {
             List<ProductImage> images = req.getImageSet().stream().map(imageRequest -> {
                 ProductImage image = new ProductImage();
                 image.setProduct(product);
-                image.setImageUrl(imageRequest.getUrl()); // Changed from setImageURL to setImageUrl
-                image.setIsPrimary(imageRequest.isThumbnail()); // Changed from setThumbnail to setIsPrimary
-                image.setSortOrder(0); // Default sort order
+                image.setImageUrl(imageRequest.getUrl());
+                image.setIsPrimary(imageRequest.isThumbnail());
+                image.setSortOrder(imageRequest.getSortOrder() != null ? imageRequest.getSortOrder() : 0);
                 return image;
             }).toList();
 
@@ -196,14 +203,26 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new OpenApiResourceNotFoundException("Product not found with id: " + productId));
 
         product.setName(req.getName());
+        if (req.getCode() != null) {
+            product.setCode(req.getCode());
+        }
         product.setDescription(req.getDescription());
-        product.setQuantity(req.getStock()); // Changed from setStock to setQuantity
+        product.setQuantity(req.getStock());
         product.setPrice(req.getPrice());
+        if (req.getStatus() != null) {
+            product.setStatus(req.getStatus());
+        }
         product.setGender(req.getGender());
         product.setMaterial(req.getMaterial());
         product.setGoldKarat(req.getGoldKarat());
         product.setColor(req.getColor());
         product.setBrand(req.getBrand());
+        if (req.getSize() != null) {
+            product.setSize(req.getSize());
+        }
+        if (req.getViewCount() != null) {
+            product.setViewCount(req.getViewCount());
+        }
 
         if (!product.getCategory().getCategoryId().equals(req.getCategoryId())) {
             Category category = categoryRepository.findById(req.getCategoryId())
@@ -232,7 +251,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new OpenApiResourceNotFoundException("Product not found with id: " + productId));
 
-        List<ProductImage> images = productImageRepository.findByProduct_Id(productId); // Changed from findByProduct_ProductId
+        List<ProductImage> images = productImageRepository.findByProduct_Id(productId);
         if (!images.isEmpty()) {
             productImageRepository.deleteAll(images);
             log.info("Deleted {} images associated with product {}", images.size(), productId);
@@ -251,26 +270,35 @@ public class ProductServiceImpl implements ProductService {
 
         Pageable pageable = PageRequest.of(pageNo, size);
 
-        Page<Product> products = productRepository.findByQuantityEquals(0, pageable); // Changed from findByStockEquals
+        Page<Product> products = productRepository.findByQuantityEquals(0, pageable);
         List<ProductResponse> productList = products.stream()
-                .map(product -> ProductResponse.builder()
-                        .productId(product.getId())
-                        .name(product.getName())
-                        .description(product.getDescription())
-                        .stock(product.getQuantity()) // Changed from getStock to getQuantity
-                        .price(product.getPrice())
-                        .gender(product.getGender())
-                        .material(product.getMaterial())
-                        .goldKarat(product.getGoldKarat())
-                        .color(product.getColor())
-                        .brand(product.getBrand())
-                        .viewCount(product.getViewCount())
-                        .categoryId(product.getCategory().getCategoryId())
-                        .collectionId(product.getCollection().getCollectionId())
-                        .createdAt(product.getCreatedAt())
-                        .updatedAt(product.getUpdatedAt())
-                        .build()
-                )
+                .map(product -> {
+                    List<ImageResponse> imageResponses = product.getImageSet().stream()
+                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(), image.getSortOrder()))
+                            .collect(Collectors.toList());
+                    
+                    return ProductResponse.builder()
+                            .productId(product.getId())
+                            .name(product.getName())
+                            .code(product.getCode())
+                            .description(product.getDescription())
+                            .stock(product.getQuantity())
+                            .price(product.getPrice())
+                            .status(product.getStatus())
+                            .gender(product.getGender())
+                            .material(product.getMaterial())
+                            .goldKarat(product.getGoldKarat())
+                            .color(product.getColor())
+                            .brand(product.getBrand())
+                            .size(product.getSize())
+                            .viewCount(product.getViewCount())
+                            .categoryId(product.getCategory().getCategoryId())
+                            .collectionId(product.getCollection().getCollectionId())
+                            .imageSet(imageResponses)
+                            .createdAt(product.getCreatedAt())
+                            .updatedAt(product.getUpdatedAt())
+                            .build();
+                })
                 .toList();
         ProductPageResponse response = new ProductPageResponse();
         response.setPageNumber(page);
@@ -289,26 +317,35 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Pageable pageable = PageRequest.of(pageNo, size);
-        Page<Product> products = productRepository.findByQuantityLessThanEqual(threshold, pageable); // Changed from findByStockLessThanEqual
+        Page<Product> products = productRepository.findByQuantityLessThanEqual(threshold, pageable);
         List<ProductResponse> productList = products.stream()
-                .map(product -> ProductResponse.builder()
-                        .productId(product.getId())
-                        .name(product.getName())
-                        .description(product.getDescription())
-                        .stock(product.getQuantity()) // Changed from getStock to getQuantity
-                        .price(product.getPrice())
-                        .gender(product.getGender())
-                        .material(product.getMaterial())
-                        .goldKarat(product.getGoldKarat())
-                        .color(product.getColor())
-                        .brand(product.getBrand())
-                        .viewCount(product.getViewCount())
-                        .categoryId(product.getCategory().getCategoryId())
-                        .collectionId(product.getCollection().getCollectionId())
-                        .createdAt(product.getCreatedAt())
-                        .updatedAt(product.getUpdatedAt())
-                        .build()
-                )
+                .map(product -> {
+                    List<ImageResponse> imageResponses = product.getImageSet().stream()
+                            .map(image -> new ImageResponse(image.getId(), image.getImageUrl(), image.getIsPrimary(), image.getSortOrder()))
+                            .collect(Collectors.toList());
+                    
+                    return ProductResponse.builder()
+                            .productId(product.getId())
+                            .name(product.getName())
+                            .code(product.getCode())
+                            .description(product.getDescription())
+                            .stock(product.getQuantity())
+                            .price(product.getPrice())
+                            .status(product.getStatus())
+                            .gender(product.getGender())
+                            .material(product.getMaterial())
+                            .goldKarat(product.getGoldKarat())
+                            .color(product.getColor())
+                            .brand(product.getBrand())
+                            .size(product.getSize())
+                            .viewCount(product.getViewCount())
+                            .categoryId(product.getCategory().getCategoryId())
+                            .collectionId(product.getCollection().getCollectionId())
+                            .imageSet(imageResponses)
+                            .createdAt(product.getCreatedAt())
+                            .updatedAt(product.getUpdatedAt())
+                            .build();
+                })
                 .toList();
         ProductPageResponse response = new ProductPageResponse();
         response.setPageNumber(page);
@@ -327,7 +364,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new OpenApiResourceNotFoundException("Product not found with id: " + productId));
 
-        product.setQuantity(newStock); // Changed from setStock to setQuantity
+        product.setQuantity(newStock);
         product.setUpdatedAt(LocalDateTime.now());
 
         Product updatedProduct = productRepository.save(product);
@@ -366,15 +403,15 @@ public class ProductServiceImpl implements ProductService {
                     Product product = new Product();
                     product.setName(data[0].trim());
                     product.setDescription(data[1].trim());
-                    product.setQuantity(Integer.parseInt(data[2].trim())); // Changed from setStock to setQuantity
-                    product.setCode(generateProductCode(data[0].trim())); // Generate code based on product name
+                    product.setQuantity(Integer.parseInt(data[2].trim()));
+                    product.setCode(generateProductCode(data[0].trim()));
                     product.setPrice(Double.parseDouble(data[3].trim()));
                     product.setGender(Integer.parseInt(data[4].trim()));
                     product.setMaterial(data[5].trim());
                     product.setGoldKarat(Integer.parseInt(data[6].trim()));
                     product.setColor(data[7].trim());
                     product.setBrand(data[8].trim());
-                    product.setStatus("ACTIVE"); // Default status
+                    product.setStatus("ACTIVE");
                     product.setViewCount(0);
                     product.setCreatedAt(LocalDateTime.now());
                     product.setUpdatedAt(LocalDateTime.now());
@@ -392,9 +429,9 @@ public class ProductServiceImpl implements ProductService {
 
                     ProductImage productImage = new ProductImage();
                     productImage.setProduct(product);
-                    productImage.setImageUrl(data[11].trim()); // Changed from setImageURL to setImageUrl
-                    productImage.setIsPrimary(true); // Changed from setThumbnail to setIsPrimary
-                    productImage.setSortOrder(0); // Default sort order
+                    productImage.setImageUrl(data[11].trim());
+                    productImage.setIsPrimary(true);
+                    productImage.setSortOrder(0);
                     productImageRepository.save(productImage);
 
                     log.info("Saved image for product at line {}: {}", lineCount);
@@ -421,9 +458,9 @@ public class ProductServiceImpl implements ProductService {
         for (ImageRequest imageRequest : imageRequests) {
             ProductImage productImage = new ProductImage();
             productImage.setProduct(product);
-            productImage.setImageUrl(imageRequest.getUrl()); // Changed from setImageURL to setImageUrl
-            productImage.setIsPrimary(imageRequest.isThumbnail()); // Changed from setThumbnail to setIsPrimary
-            productImage.setSortOrder(0); // Default sort order
+            productImage.setImageUrl(imageRequest.getUrl());
+            productImage.setIsPrimary(imageRequest.isThumbnail());
+            productImage.setSortOrder(imageRequest.getSortOrder() != null ? imageRequest.getSortOrder() : 0);
 
             ProductImage savedImage = productImageRepository.save(productImage);
             savedImageIds.add(savedImage.getId());

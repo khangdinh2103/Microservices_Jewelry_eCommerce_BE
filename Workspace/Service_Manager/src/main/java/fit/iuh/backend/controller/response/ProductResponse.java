@@ -10,23 +10,25 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductResponse {
-    private Long productId;
+    private Long productId; // Giữ tên cũ để tương thích với frontend
     private String name;
+    private String code; // Thêm code
     private String description;
-    private Integer stock;
+    private Integer stock; // Giữ tên cũ để tương thích với frontend
     private Double price;
+    private String status; // Thêm status
     private Integer gender;
     private String material;
     private Integer goldKarat;
     private String color;
     private String brand;
+    private String size; // Thêm size
     private Integer viewCount;
     private Long categoryId;
     private Long collectionId;
@@ -34,6 +36,4 @@ public class ProductResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<Review> reviews;
-
-
 }

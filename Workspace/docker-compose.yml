@@ -27,6 +27,28 @@ services:
         networks:
             - jec-network
     
+    # API Gateway
+    api-gateway:
+        build: 
+            context: ./API_Gateway/api-gateway
+            dockerfile: Dockerfile.dev
+        container_name: api-gateway
+        ports:
+            - "8000:8000"
+        depends_on:
+            - service-account
+            - service-manager
+            - service-catalog
+            - service-cart-order
+        environment:
+            - PORT=8000
+        volumes:
+            - ./API_Gateway/api-gateway:/app
+            - api-gateway-node_modules:/app/node_modules
+            - api-gateway-logs:/app/logs
+        networks:
+            - jec-network
+    
     # Service Manager (Spring Boot with Maven)
     service-manager:
         build: 
@@ -128,3 +150,5 @@ volumes:
     service-account-gradle:
     service-catalog-gradle:
     service-cart-order-node_modules:
+    api-gateway-node_modules:
+    api-gateway-logs:

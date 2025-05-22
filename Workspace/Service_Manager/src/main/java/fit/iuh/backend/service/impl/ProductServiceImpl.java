@@ -254,11 +254,14 @@ public class ProductServiceImpl implements ProductService {
             product.setCategory(category);
         }
 
-        if (!product.getCollection().getCollectionId().equals(req.getCollectionId())) {
-            Collection collection = collectionRepository.findById(req.getCollectionId())
-                    .orElseThrow(() -> new OpenApiResourceNotFoundException(
-                            "Collection not found with id: " + req.getCollectionId()));
-            product.setCollection(collection);
+        Collection collection = product.getCollection();
+        if (collection == null) {
+            if (req.getCollectionId() != null) {
+                collection = collectionRepository.findById(req.getCollectionId())
+                        .orElseThrow(() -> new OpenApiResourceNotFoundException(
+                                "Collection not found with id: " + req.getCollectionId()));
+                product.setCollection(collection);
+            }
         }
 
         product.setUpdatedAt(LocalDateTime.now());

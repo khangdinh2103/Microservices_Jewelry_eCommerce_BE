@@ -27,50 +27,6 @@ services:
         networks:
             - jec-network
     
-    # API Gateway
-    api-gateway:
-        build: 
-            context: ./API_Gateway/api-gateway
-            dockerfile: Dockerfile.dev
-        container_name: api-gateway
-        ports:
-            - "8000:8000"
-        depends_on:
-            - service-account
-            - service-manager
-            - service-catalog
-            - service-cart-order
-        environment:
-            - PORT=8000
-        volumes:
-            - ./API_Gateway/api-gateway:/app
-            - api-gateway-node_modules:/app/node_modules
-            - api-gateway-logs:/app/logs
-        networks:
-            - jec-network
-    
-    # Service Manager (Spring Boot with Maven)
-    service-manager:
-        build: 
-            context: ./Service_Manager
-            dockerfile: Dockerfile.dev
-        container_name: service-manager
-        ports:
-            - "8003:8003"
-        depends_on:
-            - postgres
-            - redis
-        environment:
-            - SPRING_PROFILES_ACTIVE=dev
-            - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:6543/JEC
-            - SPRING_DATASOURCE_USERNAME=jec_admin
-            - SPRING_DATASOURCE_PASSWORD=jec_admin
-        volumes:
-            - ./Service_Manager:/app
-            - service-manager-m2:/root/.m2
-        networks:
-            - jec-network
-            
     # Service Account (Spring Boot with Gradle)
     service-account:
         build: 
@@ -104,11 +60,15 @@ services:
         ports:
             - "8005:8005"
         depends_on:
+            - service-account
             - postgres
+            - redis
         environment:
             - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:6543/JEC
             - SPRING_DATASOURCE_USERNAME=jec_admin
             - SPRING_DATASOURCE_PASSWORD=jec_admin
+            - SPRING_REDIS_HOST=redis
+            - SPRING_REDIS_PORT=6379
         volumes:
             - ./Service_Catalog/Service_Catalog_Backend:/app
             - service-catalog-gradle:/root/.gradle
@@ -125,6 +85,7 @@ services:
         ports:
             - "8006:8006"
         depends_on:
+            - service-catalog
             - postgres
         environment:
             - DB_HOST=postgres
@@ -135,6 +96,51 @@ services:
         volumes:
             - ./Service_Cart_Order/Service_Cart_Order_Backend:/app
             - service-cart-order-node_modules:/app/node_modules
+        networks:
+            - jec-network
+            
+    # Service Manager (Spring Boot with Maven)
+    service-manager:
+        build: 
+            context: ./Service_Manager
+            dockerfile: Dockerfile.dev
+        container_name: service-manager
+        ports:
+            - "8003:8003"
+        depends_on:
+            - service-cart-order
+            - postgres
+            - redis
+        environment:
+            - SPRING_PROFILES_ACTIVE=dev
+            - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:6543/JEC
+            - SPRING_DATASOURCE_USERNAME=jec_admin
+            - SPRING_DATASOURCE_PASSWORD=jec_admin
+        volumes:
+            - ./Service_Manager:/app
+            - service-manager-m2:/root/.m2
+        networks:
+            - jec-network
+            
+    # API Gateway - Starts last after all services
+    api-gateway:
+        build: 
+            context: ./API_Gateway/api-gateway
+            dockerfile: Dockerfile.dev
+        container_name: api-gateway
+        ports:
+            - "8000:8000"
+        depends_on:
+            - service-account
+            - service-manager
+            - service-catalog
+            - service-cart-order
+        environment:
+            - PORT=8000
+        volumes:
+            - ./API_Gateway/api-gateway:/app
+            - api-gateway-node_modules:/app/node_modules
+            - api-gateway-logs:/app/logs
         networks:
             - jec-network
 

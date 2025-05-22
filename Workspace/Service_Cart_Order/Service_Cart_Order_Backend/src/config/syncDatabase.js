@@ -5,7 +5,7 @@ require('../models'); // Đảm bảo tất cả models đều được load
 const syncDatabase = async () => {
     try {
         // Cập nhật giá trị NULL thành giá trị thời gian hiện tại cho các trường updated_at
-        await sequelize.query(`UPDATE users SET updated_at = created_at WHERE updated_at IS NULL`);
+        // await sequelize.query(`UPDATE users SET updated_at = created_at WHERE updated_at IS NULL`);
         
         // Sau đó mới đồng bộ hóa schema
         await sequelize.sync({ alter: true });

@@ -113,10 +113,10 @@ public class AuthController {
                 newUser.setPassword(this.passwordEncoder.encode(randomPassword));
 
                 // You need to get the Role object from your service or repository
-                Role userRole = this.userService.getRoleByName("NORMAL_USER");
+                Role userRole = this.userService.getRoleByName("USER");
                 if (userRole == null) {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(new ResLoginDTO("Không tìm thấy vai trò NORMAL_USER"));
+                            .body(new ResLoginDTO("Không tìm thấy vai trò USER"));
                 }
                 newUser.setRole(userRole);
 
@@ -414,9 +414,9 @@ public class AuthController {
                     "Email " + postManUser.getEmail() + " đã tồn tại, vui lòng sử dụng email khác.");
         }
 
-        Role userRole = this.userService.getRoleByName("NORMAL_USER");
+        Role userRole = this.userService.getRoleByName("USER");
         if (userRole == null) {
-            throw new IdInvalidException("Không tìm thấy vai trò NORMAL_USER");
+            throw new IdInvalidException("Không tìm thấy vai trò USER");
         }
         postManUser.setRole(userRole);
 

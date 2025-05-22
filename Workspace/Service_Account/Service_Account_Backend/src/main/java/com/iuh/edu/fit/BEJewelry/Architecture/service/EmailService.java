@@ -47,6 +47,8 @@ public class EmailService {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
+        System.out.println("Reset Link: " + resetLink);
+
         helper.setTo(to);
         helper.setSubject("Đặt lại mật khẩu của bạn");
         helper.setText("<p>Nhấp vào link bên dưới để đặt lại mật khẩu của bạn:</p>"

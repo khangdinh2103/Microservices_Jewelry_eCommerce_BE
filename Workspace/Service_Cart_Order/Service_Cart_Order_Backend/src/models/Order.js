@@ -29,15 +29,16 @@ const Order = sequelize.define('Order', {
         allowNull: false,
     },
     status: {
-        type: DataTypes.ENUM(...Object.values(OrderStatus)),
+        type: DataTypes.STRING,
         defaultValue: OrderStatus.PENDING,
+        allowNull: false,
     },
     payment_status: { // Đổi từ paymentStatus thành payment_status
-        type: DataTypes.ENUM('PENDING', 'PAID', 'CANCELED'),
+        type: DataTypes.STRING,
         defaultValue: 'PENDING',
     },
     payment_method: { 
-        type: DataTypes.ENUM('COD', 'MOMO_QR', 'BANK_TRANSFER'),
+        type: DataTypes.STRING,
         defaultValue: 'COD',
     },
 }, {

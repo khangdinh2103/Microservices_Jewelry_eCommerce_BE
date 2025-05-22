@@ -102,7 +102,7 @@ public class ProductServiceImpl implements ProductService {
 
                     // Safe null checks for category and collection
                     if (product.getCategory() != null) {
-                        builder.categoryId(product.getCategory().getCategoryId());
+                        builder.categoryId(product.getCategory().getId());
                     }
 
                     if (product.getCollection() != null) {
@@ -153,7 +153,7 @@ public class ProductServiceImpl implements ProductService {
 
         // Safe null checks for category and collection
         if (product.getCategory() != null) {
-            builder.categoryId(product.getCategory().getCategoryId());
+            builder.categoryId(product.getCategory().getId());
         }
 
         if (product.getCollection() != null) {
@@ -247,7 +247,7 @@ public class ProductServiceImpl implements ProductService {
             product.setViewCount(req.getViewCount());
         }
 
-        if (!product.getCategory().getCategoryId().equals(req.getCategoryId())) {
+        if (!product.getCategory().getId().equals(req.getCategoryId())) {
             Category category = categoryRepository.findById(req.getCategoryId())
                     .orElseThrow(() -> new OpenApiResourceNotFoundException(
                             "Category not found with id: " + req.getCategoryId()));
@@ -324,7 +324,7 @@ public class ProductServiceImpl implements ProductService {
 
                     // Safe null checks for category and collection
                     if (product.getCategory() != null) {
-                        builder.categoryId(product.getCategory().getCategoryId());
+                        builder.categoryId(product.getCategory().getId());
                     }
 
                     if (product.getCollection() != null) {
@@ -380,7 +380,7 @@ public class ProductServiceImpl implements ProductService {
 
                     // Safe null checks for category and collection
                     if (product.getCategory() != null) {
-                        builder.categoryId(product.getCategory().getCategoryId());
+                        builder.categoryId(product.getCategory().getId());
                     }
 
                     if (product.getCollection() != null) {

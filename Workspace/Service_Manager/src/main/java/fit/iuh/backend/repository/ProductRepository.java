@@ -34,7 +34,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
     Page<Product> findByGender(Integer gender, Pageable pageable);
     
     // Fix field name to match Category entity
-    Page<Product> findByCategory_CategoryId(Long categoryId, Pageable pageable);
+    Page<Product> findByCategory_Id(Long categoryId, Pageable pageable);
     
     // Keep CollectionId since it matches the entity
     Page<Product> findByCollection_CollectionId(Long collectionId, Pageable pageable);
